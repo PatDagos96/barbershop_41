@@ -2,16 +2,20 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.responses import FileResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from sqlalchemy.orm import Session
+from sqlalchemy import extract
 import models, database, secrets
 from datetime import datetime
 
-# 1. Configurazione Iniziale del Database
+# Configurazione Iniziale
 models.Base.metadata.create_all(bind=database.engine)
-
 app = FastAPI()
 security = HTTPBasic()
 
-# 2. Funzione per ottenere la connessione al Database
+# --- CONFIGURAZIONE ORARI NEGOZIO ---
+ORA_APERTURA = 9  # 9:00
+ORA_CHIUSURA = 19 # 19:00 (L'ultimo taglio sarà alle 18:00)
+DURATA_SLOT = 1   # Durata in ore (es. 1 ora a cliente)
+
 def get_db():
     db = database.SessionLocal()
     try:
@@ -19,67 +23,62 @@ def get_db():
     finally:
         db.close()
 
-# 3. Funzione di Sicurezza (Il "Guardiano")
 def controlla_credenziali(credentials: HTTPBasicCredentials = Depends(security)):
-    # QUI PUOI CAMBIARE UTENTE E PASSWORD
     username_corretto = secrets.compare_digest(credentials.username, "admin")
     password_corretta = secrets.compare_digest(credentials.password, "password123")
-    
     if not (username_corretto and password_corretta):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Credenziali errate",
-            headers={"WWW-Authenticate": "Basic"},
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenziali errate", headers={"WWW-Authenticate": "Basic"})
     return credentials.username
 
-# --- LE PAGINE WEB (FRONTEND) ---
-
-# Pagina Pubblica (Per i clienti)
+# --- PAGINE WEB ---
 @app.get("/")
 def home():
     return FileResponse("index.html")
 
-# Pagina Privata (Per il titolare) - PROTETTA DA PASSWORD
 @app.get("/admin")
 def pannello_admin(username: str = Depends(controlla_credenziali)):
     return FileResponse("admin.html")
 
-# --- LE API (IL CERVELLO) ---
+# --- API (IL CERVELLO) ---
 
-# Salva una prenotazione (Pubblico)
+# NUOVA FUNZIONE: Calcola gli orari liberi per una data specifica
+@app.get("/orari-disponibili")
+def get_orari(data: str, db: Session = Depends(get_db)):
+    # 1. Genera tutti gli orari possibili della giornata
+    orari_possibili = []
+    for h in range(ORA_APERTURA, ORA_CHIUSURA, DURATA_SLOT):
+        orario_formattato = f"{h:02d}:00" # Trasforma 9 in "09:00"
+        orari_possibili.append(orario_formattato)
+    
+    # 2. Chiede al DB quali sono già occupati in quella data
+    prenotazioni = db.query(models.Appointment).filter(models.Appointment.data == data).all()
+    orari_occupati = [p.ora for p in prenotazioni]
+
+    # 3. Sottrae gli occupati dai possibili
+    orari_liberi = [ora for ora in orari_possibili if ora not in orari_occupati]
+    
+    return {"orari": orari_liberi}
+
 @app.post("/prenota")
 def prenota(nome: str, servizio: str, data: str, ora: str, db: Session = Depends(get_db)):
-    # Controllo doppioni
-    esiste = db.query(models.Appointment).filter(
-        models.Appointment.data == data,
-        models.Appointment.ora == ora
-    ).first()
-
+    # Verifica doppia sicurezza
+    esiste = db.query(models.Appointment).filter(models.Appointment.data == data, models.Appointment.ora == ora).first()
     if esiste:
-        raise HTTPException(status_code=400, detail="Spiacente, orario già occupato!")
+        raise HTTPException(status_code=400, detail="Orario appena occupato da un altro cliente!")
     
-    # Salvataggio
-    nuova_prenotazione = models.Appointment(cliente=nome, servizio=servizio, data=data, ora=ora)
-    db.add(nuova_prenotazione)
+    nuova = models.Appointment(cliente=nome, servizio=servizio, data=data, ora=ora)
+    db.add(nuova)
     db.commit()
-    
-    return {"status": "successo", "messaggio": f"Prenotata sessione per {nome} il {data} alle {ora}"}
+    return {"status": "successo", "messaggio": "Prenotazione Confermata!"}
 
-# Leggi la lista appuntamenti (Usato dalla pagina Admin)
 @app.get("/lista_appuntamenti")
 def lista(db: Session = Depends(get_db)):
-    return db.query(models.Appointment).all()
+    return db.query(models.Appointment).order_by(models.Appointment.data, models.Appointment.ora).all()
 
-# Cancella una prenotazione (Usato dalla pagina Admin)
-@app.delete("/cancella/{appointment_id}")
-def cancella_prenotazione(appointment_id: int, db: Session = Depends(get_db)):
-    appuntamento = db.query(models.Appointment).filter(models.Appointment.id == appointment_id).first()
-    
-    if not appuntamento:
-        raise HTTPException(status_code=404, detail="Appuntamento non trovato")
-    
-    db.delete(appuntamento)
-    db.commit()
-    
-    return {"status": "successo", "messaggio": "Appuntamento rimosso correttamente"}
+@app.delete("/cancella/{id}")
+def cancella(id: int, db: Session = Depends(get_db)):
+    item = db.query(models.Appointment).filter(models.Appointment.id == id).first()
+    if item:
+        db.delete(item)
+        db.commit()
+    return {"ok": True}

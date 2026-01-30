@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
 import models, database, secrets
-import requests # Serve per chiamare Telegram
+import requests 
+import os # <--- IMPORTANTE: Serve per leggere le variabili segrete dal sistema
 
 # Configurazione Iniziale
 models.Base.metadata.create_all(bind=database.engine)
@@ -43,17 +44,24 @@ def controlla_credenziali(credentials: HTTPBasicCredentials = Depends(security))
         )
     return credentials.username
 
-# --- NUOVA FUNZIONE TELEGRAM ---
+# --- NUOVA FUNZIONE TELEGRAM SICURA ---
 def invia_telegram_admin(messaggio):
-    # DATI DEL BOT (Configurati per te)
-    BOT_TOKEN = "8351298356:AAES6zhwq3gZVwxjNt6GTEYPg4L90gfeoc4" 
-    CHAT_ID = "152592559" # <--- ID INSERITO CORRETTAMENTE!
+    # I dati ora vengono letti dalle "Variabili d'Ambiente" del server (Render)
+    # Non sono più scritti in chiaro nel codice!
+    # Se sei in locale, assicurati di averle impostate o il bot non partirà.
+    BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+    CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
     
+    # Controllo di sicurezza: se mancano le chiavi, non crashare, avvisa solo nei log
+    if not BOT_TOKEN or not CHAT_ID:
+        print("⚠️ Telegram non configurato: mancano le variabili d'ambiente (TELEGRAM_BOT_TOKEN o TELEGRAM_CHAT_ID) su Render!")
+        return
+
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     payload = {
         "chat_id": CHAT_ID,
         "text": messaggio,
-        "parse_mode": "Markdown" # Permette il grassetto con *testo*
+        "parse_mode": "Markdown"
     }
     
     try:
@@ -92,7 +100,6 @@ def prenota(nome: str, telefono: str, servizio: str, data: str, ora: str, note: 
     db.commit()
     
     # --- INVIO NOTIFICA TELEGRAM ---
-    # Usiamo *asterischi* per il grassetto in Telegram
     msg = f"🔔 *NUOVA PRENOTAZIONE*\n\n👤 {nome}\n✂️ {servizio}\n📅 {data} alle {ora}\n📞 {telefono}"
     if note:
         msg += f"\n📝 Note: {note}"

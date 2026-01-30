@@ -1,20 +1,29 @@
 from fastapi import FastAPI, Depends, HTTPException, status
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from sqlalchemy.orm import Session
-from sqlalchemy import extract
+from pydantic import BaseModel
+from typing import Optional
 import models, database, secrets
-from datetime import datetime
 
 # Configurazione Iniziale
 models.Base.metadata.create_all(bind=database.engine)
 app = FastAPI()
 security = HTTPBasic()
 
-# --- CONFIGURAZIONE ORARI NEGOZIO ---
-ORA_APERTURA = 9  # 9:00
-ORA_CHIUSURA = 19 # 19:00 (L'ultimo taglio sarà alle 18:00)
-DURATA_SLOT = 1   # Durata in ore (es. 1 ora a cliente)
+# --- ORARI ---
+ORA_APERTURA = 9
+ORA_CHIUSURA = 19
+DURATA_SLOT = 1
+
+# Modello dati per la richiesta di modifica (Pydantic)
+class PrenotazioneUpdate(BaseModel):
+    cliente: str
+    telefono: str
+    servizio: str
+    data: str
+    ora: str
+    note: Optional[str] = ""
 
 def get_db():
     db = database.SessionLocal()
@@ -27,10 +36,14 @@ def controlla_credenziali(credentials: HTTPBasicCredentials = Depends(security))
     username_corretto = secrets.compare_digest(credentials.username, "admin")
     password_corretta = secrets.compare_digest(credentials.password, "password123")
     if not (username_corretto and password_corretta):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenziali errate", headers={"WWW-Authenticate": "Basic"})
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenziali errate",
+            headers={"WWW-Authenticate": "Basic"},
+        )
     return credentials.username
 
-# --- PAGINE WEB ---
+# --- PAGINE ---
 @app.get("/")
 def home():
     return FileResponse("index.html")
@@ -39,41 +52,59 @@ def home():
 def pannello_admin(username: str = Depends(controlla_credenziali)):
     return FileResponse("admin.html")
 
-# --- API (IL CERVELLO) ---
+# --- API ---
 
-# NUOVA FUNZIONE: Calcola gli orari liberi per una data specifica
 @app.get("/orari-disponibili")
 def get_orari(data: str, db: Session = Depends(get_db)):
-    # 1. Genera tutti gli orari possibili della giornata
-    orari_possibili = []
-    for h in range(ORA_APERTURA, ORA_CHIUSURA, DURATA_SLOT):
-        orario_formattato = f"{h:02d}:00" # Trasforma 9 in "09:00"
-        orari_possibili.append(orario_formattato)
-    
-    # 2. Chiede al DB quali sono già occupati in quella data
+    orari_possibili = [f"{h:02d}:00" for h in range(ORA_APERTURA, ORA_CHIUSURA, DURATA_SLOT)]
     prenotazioni = db.query(models.Appointment).filter(models.Appointment.data == data).all()
     orari_occupati = [p.ora for p in prenotazioni]
-
-    # 3. Sottrae gli occupati dai possibili
     orari_liberi = [ora for ora in orari_possibili if ora not in orari_occupati]
-    
     return {"orari": orari_liberi}
 
 @app.post("/prenota")
-def prenota(nome: str, servizio: str, data: str, ora: str, db: Session = Depends(get_db)):
-    # Verifica doppia sicurezza
+def prenota(nome: str, telefono: str, servizio: str, data: str, ora: str, note: str = "", db: Session = Depends(get_db)):
     esiste = db.query(models.Appointment).filter(models.Appointment.data == data, models.Appointment.ora == ora).first()
     if esiste:
-        raise HTTPException(status_code=400, detail="Orario appena occupato da un altro cliente!")
+        raise HTTPException(status_code=400, detail="Orario appena occupato!")
     
-    nuova = models.Appointment(cliente=nome, servizio=servizio, data=data, ora=ora)
+    nuova = models.Appointment(cliente=nome, telefono=telefono, servizio=servizio, data=data, ora=ora, note=note)
     db.add(nuova)
     db.commit()
     return {"status": "successo", "messaggio": "Prenotazione Confermata!"}
 
 @app.get("/lista_appuntamenti")
 def lista(db: Session = Depends(get_db)):
+    # Ordina per Data e poi per Ora
     return db.query(models.Appointment).order_by(models.Appointment.data, models.Appointment.ora).all()
+
+# NUOVO: API per Modificare
+@app.put("/modifica/{id}")
+def modifica_appuntamento(id: int, app_update: PrenotazioneUpdate, db: Session = Depends(get_db)):
+    prenotazione = db.query(models.Appointment).filter(models.Appointment.id == id).first()
+    if not prenotazione:
+        raise HTTPException(status_code=404, detail="Appuntamento non trovato")
+
+    # Controlla se il nuovo orario è libero (solo se data o ora sono cambiate)
+    if (prenotazione.data != app_update.data) or (prenotazione.ora != app_update.ora):
+        occupato = db.query(models.Appointment).filter(
+            models.Appointment.data == app_update.data, 
+            models.Appointment.ora == app_update.ora,
+            models.Appointment.id != id # Escludi se stesso
+        ).first()
+        if occupato:
+             raise HTTPException(status_code=400, detail="Il nuovo orario scelto è già occupato!")
+
+    # Aggiorna i dati
+    prenotazione.cliente = app_update.cliente
+    prenotazione.telefono = app_update.telefono
+    prenotazione.servizio = app_update.servizio
+    prenotazione.data = app_update.data
+    prenotazione.ora = app_update.ora
+    prenotazione.note = app_update.note
+    
+    db.commit()
+    return {"messaggio": "Appuntamento modificato con successo"}
 
 @app.delete("/cancella/{id}")
 def cancella(id: int, db: Session = Depends(get_db)):

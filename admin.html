@@ -2,66 +2,171 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Pannello di Controllo - Admin</title>
+    <title>Gestionale Estro Saloon</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #343a40; padding: 20px; }
-        .container { background-color: white; border-radius: 10px; padding: 30px; margin-top: 20px; }
+        body { background-color: #f4f6f8; font-family: 'Segoe UI', sans-serif; }
+        .container { max-width: 900px; margin-top: 30px; }
+        
+        /* Stile Intestazione */
+        .header-admin { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 2px solid #ddd; }
+        .header-admin h2 { color: #333; font-weight: bold; }
+
+        /* Stile Gruppo Giornaliero */
+        .giorno-container { background: white; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 5px solid #d4af37; }
+        .data-header { font-size: 1.3rem; font-weight: bold; color: #d4af37; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Stile Card Appuntamento */
+        .appuntamento-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; transition: background 0.2s; }
+        .appuntamento-item:last-child { border-bottom: none; }
+        .appuntamento-item:hover { background-color: #fafafa; }
+
+        .info-time { font-size: 1.2rem; font-weight: bold; color: #333; min-width: 70px; }
+        .info-cliente { flex-grow: 1; margin-left: 15px; }
+        .cliente-nome { font-weight: bold; font-size: 1.1rem; color: #000; }
+        .cliente-dettagli { font-size: 0.9rem; color: #666; }
+        .cliente-note { font-size: 0.85rem; color: #d63384; font-style: italic; margin-top: 2px; }
+
+        .azioni button { margin-left: 5px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>🔒 Pannello Amministratore</h2>
-        <button onclick="caricaAppuntamenti()" class="btn btn-warning">🔄 Aggiorna Lista</button>
+<div class="container pb-5">
+    <div class="header-admin">
+        <h2>📅 Agenda Appuntamenti</h2>
+        <button onclick="caricaAppuntamenti()" class="btn btn-dark">🔄 Aggiorna</button>
     </div>
 
-    <table class="table table-striped" id="tabellaAppuntamenti">
-        <thead class="table-dark">
-            <tr>
-                <th>ID</th>
-                <th>Cliente</th>
-                <th>Servizio</th>
-                <th>Data</th>
-                <th>Ora</th>
-                <th>Azioni</th>
-            </tr>
-        </thead>
-        <tbody>
-            </tbody>
-    </table>
+    <div id="lista-agenda">
+        <div class="text-center mt-5"><div class="spinner-border text-warning"></div></div>
+    </div>
 </div>
 
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modifica Appuntamento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-id">
+                <div class="mb-2"><label>Cliente</label><input type="text" id="edit-cliente" class="form-control"></div>
+                <div class="mb-2"><label>Telefono</label><input type="text" id="edit-telefono" class="form-control"></div>
+                <div class="mb-2"><label>Servizio</label><select id="edit-servizio" class="form-select">
+                    <option>Taglio Donna</option><option>Piega e Stile</option><option>Colore Completo</option><option>Taglio Uomo</option>
+                </select></div>
+                <div class="row">
+                    <div class="col"><label>Data</label><input type="date" id="edit-data" class="form-control"></div>
+                    <div class="col"><label>Ora</label><input type="text" id="edit-ora" class="form-control" placeholder="HH:MM"></div>
+                </div>
+                <div class="mt-2"><label>Note</label><textarea id="edit-note" class="form-control"></textarea></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn btn-primary" onclick="salvaModifiche()">Salva Modifiche</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+
     async function caricaAppuntamenti() {
-        const response = await fetch('/lista_appuntamenti');
-        const dati = await response.json();
-        const tbody = document.querySelector('#tabellaAppuntamenti tbody');
-        tbody.innerHTML = '';
-        
+        const res = await fetch('/lista_appuntamenti');
+        const dati = await res.json();
+        const container = document.getElementById('lista-agenda');
+        container.innerHTML = '';
+
+        if (dati.length === 0) {
+            container.innerHTML = '<h4 class="text-center text-muted">Nessun appuntamento in agenda.</h4>';
+            return;
+        }
+
+        // Raggruppa per data
+        const gruppi = {};
         dati.forEach(app => {
-            tbody.innerHTML += `<tr>
-                <td>${app.id}</td>
-                <td><strong>${app.cliente}</strong></td>
-                <td>${app.servizio}</td>
-                <td>${app.data}</td>
-                <td>${app.ora}</td>
-                <td>
-                    <button onclick="eliminaPrenotazione(${app.id})" class="btn btn-danger btn-sm">Cancella</button>
-                </td>
-            </tr>`;
+            if (!gruppi[app.data]) gruppi[app.data] = [];
+            gruppi[app.data].push(app);
         });
+
+        // Genera HTML per ogni giorno
+        for (const [data, appuntamenti] of Object.entries(gruppi)) {
+            // Formatta data bella (es. 2026-01-30 -> 30/01/2026)
+            const dataBella = data.split('-').reverse().join('/');
+            
+            let htmlGruppo = `<div class="giorno-container">
+                <div class="data-header">🗓️ ${dataBella}</div>`;
+            
+            appuntamenti.forEach(app => {
+                htmlGruppo += `
+                <div class="appuntamento-item">
+                    <div class="info-time">${app.ora}</div>
+                    <div class="info-cliente">
+                        <div class="cliente-nome">${app.cliente}</div>
+                        <div class="cliente-dettagli">📞 ${app.telefono || '-'} | ✂️ ${app.servizio}</div>
+                        ${app.note ? `<div class="cliente-note">📝 Note: ${app.note}</div>` : ''}
+                    </div>
+                    <div class="azioni">
+                        <button onclick='apriModifica(${JSON.stringify(app)})' class="btn btn-outline-primary btn-sm">✏️ Modifica</button>
+                        <button onclick="elimina(${app.id})" class="btn btn-outline-danger btn-sm">🗑️</button>
+                    </div>
+                </div>`;
+            });
+
+            htmlGruppo += `</div>`;
+            container.innerHTML += htmlGruppo;
+        }
     }
 
-    async function eliminaPrenotazione(id) {
-        if (confirm("Sei sicuro di voler eliminare questa prenotazione?")) {
+    async function elimina(id) {
+        if(confirm("Eliminare questo appuntamento?")) {
             await fetch(`/cancella/${id}`, { method: 'DELETE' });
             caricaAppuntamenti();
         }
     }
 
-    // Carica subito i dati
+    // Funzioni per la Modifica
+    function apriModifica(app) {
+        document.getElementById('edit-id').value = app.id;
+        document.getElementById('edit-cliente').value = app.cliente;
+        document.getElementById('edit-telefono').value = app.telefono || '';
+        document.getElementById('edit-servizio').value = app.servizio;
+        document.getElementById('edit-data').value = app.data;
+        document.getElementById('edit-ora').value = app.ora;
+        document.getElementById('edit-note').value = app.note || '';
+        editModal.show();
+    }
+
+    async function salvaModifiche() {
+        const id = document.getElementById('edit-id').value;
+        const payload = {
+            cliente: document.getElementById('edit-cliente').value,
+            telefono: document.getElementById('edit-telefono').value,
+            servizio: document.getElementById('edit-servizio').value,
+            data: document.getElementById('edit-data').value,
+            ora: document.getElementById('edit-ora').value,
+            note: document.getElementById('edit-note').value
+        };
+
+        const res = await fetch(`/modifica/${id}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+            editModal.hide();
+            caricaAppuntamenti();
+        } else {
+            const err = await res.json();
+            alert("Errore: " + err.detail);
+        }
+    }
+
     caricaAppuntamenti();
 </script>
 </body>

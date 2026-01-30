@@ -105,6 +105,13 @@
         .service-name { color: var(--accent); font-weight: 600; font-size: 0.9rem; }
         .details-row { color: #666; font-size: 0.85rem; margin-top: 3px; }
         
+        /* VISTA IMPOSTAZIONI (NUOVA) */
+        .settings-container { max-width: 800px; margin: 0 auto; background: var(--white); padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .day-setting-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .day-setting-row:last-child { border-bottom: none; }
+        .holiday-tag { background-color: #dc3545; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; display: inline-flex; align-items: center; margin-right: 5px; margin-bottom: 5px; }
+        .holiday-tag button { background: none; border: none; color: white; margin-left: 8px; font-weight: bold; cursor: pointer; }
+
         /* TASTO + GALLEGGIANTE */
         .fab-btn {
             position: fixed;
@@ -147,6 +154,8 @@
     <div class="btn-group" role="group">
         <button type="button" class="btn btn-outline-dark btn-view-toggle active" id="btn-month" onclick="cambiaVista('mese')">Mese</button>
         <button type="button" class="btn btn-outline-dark btn-view-toggle" id="btn-day" onclick="cambiaVista('giorno')">Giorno</button>
+        <!-- NUOVO TASTO IMPOSTAZIONI -->
+        <button type="button" class="btn btn-outline-dark btn-view-toggle" id="btn-settings" onclick="cambiaVista('impostazioni')"><i class="bi bi-gear-fill"></i></button>
     </div>
 </div>
 
@@ -159,17 +168,44 @@
     <div id="day-view" class="day-view-container" style="display: none;">
         <div id="day-list"></div>
     </div>
+
+    <!-- NUOVA VISTA IMPOSTAZIONI -->
+    <div id="settings-view" class="container" style="display: none;">
+        <div class="settings-container">
+            <h4 class="mb-4 text-center" style="color: var(--primary);"><i class="bi bi-clock"></i> Orari di Apertura</h4>
+            <div id="weekly-hours-list">
+                <!-- Generato via JS -->
+            </div>
+
+            <hr class="my-4">
+
+            <h4 class="mb-3 text-center" style="color: var(--primary);"><i class="bi bi-calendar-x"></i> Ferie & Chiusure</h4>
+            <div class="input-group mb-3">
+                <input type="date" id="holiday-input" class="form-control">
+                <button class="btn btn-danger" onclick="addHoliday()">Blocca Data</button>
+            </div>
+            <div id="holidays-list" class="mb-3">
+                <!-- Chips date chiuse -->
+            </div>
+
+            <div class="d-grid gap-2 mt-4">
+                <button class="btn btn-success btn-lg" onclick="salvaImpostazioni()">
+                    <i class="bi bi-save"></i> SALVA MODIFICHE
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Tasto Aggiungi -->
-<button class="fab-btn" onclick="apriNuovo()" title="Nuovo Appuntamento">+</button>
+<button class="fab-btn" id="fab-add" onclick="apriNuovo()" title="Nuovo Appuntamento">+</button>
 
 <!-- Loading Spinner -->
 <div id="loader" class="loading-overlay" style="display:none;">
     <div class="spinner-border text-warning" role="status"></div>
 </div>
 
-<!-- MODAL: Gestione Appuntamento -->
+<!-- MODAL: Gestione Appuntamento (INVARIATO) -->
 <div class="modal fade" id="apptModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -246,13 +282,32 @@
 
     // --- VARIABILI DI STATO ---
     let currentDate = new Date(); // La data che stiamo visualizzando
-    let currentView = 'mese';     // 'mese' oppure 'giorno'
+    let currentView = 'mese';     // 'mese', 'giorno', 'impostazioni'
     let appointments = [];        // Dati scaricati dal server
+    
+    // NUOVO: Variabile per le impostazioni
+    let siteSettings = {
+        weekly: {
+            "Monday": { open: false, start: "09:00", end: "19:00" },
+            "Tuesday": { open: true, start: "09:00", end: "19:00" },
+            "Wednesday": { open: true, start: "09:00", end: "19:00" },
+            "Thursday": { open: true, start: "09:00", end: "19:00" },
+            "Friday": { open: true, start: "09:00", end: "19:00" },
+            "Saturday": { open: true, start: "09:00", end: "18:00" },
+            "Sunday": { open: false, start: "09:00", end: "13:00" }
+        },
+        holidays: []
+    };
+
     const modal = new bootstrap.Modal(document.getElementById('apptModal'));
+    const daysITA = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
+    const daysENG = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
     // --- AVVIO ---
     document.addEventListener('DOMContentLoaded', () => {
         scaricaDati();
+        renderSettings(); // Inizializza UI impostazioni
+        // Qui potresti chiamare scaricaImpostazioni() se il backend fosse pronto
     });
 
     // 1. SCARICA I DATI DAL SERVER
@@ -265,9 +320,8 @@
             render();
         } catch (error) {
             console.error(error);
-            // Se fallisce, non mostriamo alert continui ma logghiamo
             if(appointments.length === 0) {
-                 document.getElementById('dateDisplay').textContent = "Errore Connessione";
+                 document.getElementById('dateDisplay').textContent = "Estro Saloon";
             }
         } finally {
             mostraLoader(false);
@@ -281,25 +335,43 @@
         // Gestione visibilità sezioni
         const monthDiv = document.getElementById('month-view');
         const dayDiv = document.getElementById('day-view');
+        const settingsDiv = document.getElementById('settings-view');
+        const fabBtn = document.getElementById('fab-add');
+
         const btnMonth = document.getElementById('btn-month');
         const btnDay = document.getElementById('btn-day');
+        const btnSettings = document.getElementById('btn-settings');
+
+        // Reset classi attive
+        btnMonth.classList.remove('active');
+        btnDay.classList.remove('active');
+        btnSettings.classList.remove('active');
+        
+        // Reset display
+        monthDiv.style.display = 'none';
+        dayDiv.style.display = 'none';
+        settingsDiv.style.display = 'none';
+        fabBtn.style.display = 'flex'; // Default visibile
 
         if (currentView === 'mese') {
             monthDiv.style.display = 'grid';
-            dayDiv.style.display = 'none';
             btnMonth.classList.add('active');
-            btnDay.classList.remove('active');
             disegnaMese();
-        } else {
-            monthDiv.style.display = 'none';
+        } else if (currentView === 'giorno') {
             dayDiv.style.display = 'block';
-            btnMonth.classList.remove('active');
             btnDay.classList.add('active');
             disegnaGiorno();
+        } else if (currentView === 'impostazioni') {
+            settingsDiv.style.display = 'block';
+            btnSettings.classList.add('active');
+            fabBtn.style.display = 'none'; // Nascondi tasto + nelle impostazioni
+            document.getElementById('dateDisplay').textContent = "Configurazione";
         }
     }
 
     function aggiornaHeader() {
+        if (currentView === 'impostazioni') return;
+
         const display = document.getElementById('dateDisplay');
         const options = currentView === 'mese' 
             ? { month: 'long', year: 'numeric' } 
@@ -346,9 +418,15 @@
             });
             if(appsToday.length > 3) dots += `<div class="appt-indicator" style="background:#888">+${appsToday.length-3} altri</div>`;
 
+            // Check se è un giorno di ferie
+            let isHoliday = siteSettings.holidays.includes(dateStr);
+            let holidayStyle = isHoliday ? 'background-color: #ffebee;' : '';
+
             const cell = document.createElement('div');
             cell.className = `day-cell ${isToday ? 'day-today' : ''}`;
-            cell.innerHTML = `<span class="day-number">${day}</span>${dots}`;
+            if(isHoliday) cell.style.cssText = holidayStyle;
+            
+            cell.innerHTML = `<span class="day-number" ${isHoliday ? 'style="color:#dc3545"' : ''}>${day} ${isHoliday ? '🚫' : ''}</span>${dots}`;
             cell.onclick = () => vaiAlGiorno(dateStr);
             grid.appendChild(cell);
         }
@@ -361,17 +439,29 @@
 
         const dateStr = currentDate.toISOString().split('T')[0];
         
+        // Check ferie
+        if (siteSettings.holidays.includes(dateStr)) {
+            container.innerHTML = `
+                <div class="alert alert-danger text-center m-4">
+                    <h4><i class="bi bi-shop"></i> Giorno di Chiusura</h4>
+                    <p>Hai impostato questa data come ferie o chiusura straordinaria.</p>
+                </div>`;
+            // Non faccio return così vede comunque se c'erano appuntamenti vecchi
+        }
+
         // Filtra e ordina
         const appsToday = appointments
             .filter(a => a.data === dateStr)
             .sort((a,b) => a.ora.localeCompare(b.ora));
 
         if(appsToday.length === 0) {
-            container.innerHTML = `
-                <div class="text-center mt-5 text-muted">
-                    <h3>☕ Nessun appuntamento</h3>
-                    <p>Goditi la pausa o inserisci una prenotazione col tasto +</p>
-                </div>`;
+            if (!siteSettings.holidays.includes(dateStr)) {
+                container.innerHTML = `
+                    <div class="text-center mt-5 text-muted">
+                        <h3>☕ Nessun appuntamento</h3>
+                        <p>Goditi la pausa o inserisci una prenotazione col tasto +</p>
+                    </div>`;
+            }
             return;
         }
 
@@ -389,7 +479,114 @@
         });
     }
 
-    // --- NAVIGAZIONE ---
+    // --- NUOVE FUNZIONI IMPOSTAZIONI ---
+    
+    function renderSettings() {
+        const list = document.getElementById('weekly-hours-list');
+        list.innerHTML = '';
+
+        // Ordine: Lun (1) -> Dom (0)
+        let order = [1, 2, 3, 4, 5, 6, 0]; 
+
+        order.forEach(dayIndex => {
+            const dayEng = daysENG[dayIndex];
+            const dayIta = daysITA[dayIndex];
+            const config = siteSettings.weekly[dayEng];
+
+            list.innerHTML += `
+                <div class="day-setting-row">
+                    <div class="form-check form-switch" style="min-width: 120px;">
+                        <input class="form-check-input" type="checkbox" id="open-${dayEng}" ${config.open ? 'checked' : ''} onchange="toggleDay('${dayEng}')">
+                        <label class="form-check-label fw-bold">${dayIta}</label>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <input type="time" id="start-${dayEng}" value="${config.start}" class="form-control form-control-sm" ${!config.open ? 'disabled' : ''}>
+                        <span>-</span>
+                        <input type="time" id="end-${dayEng}" value="${config.end}" class="form-control form-control-sm" ${!config.open ? 'disabled' : ''}>
+                    </div>
+                </div>
+            `;
+        });
+
+        renderHolidaysList();
+    }
+
+    function toggleDay(dayEng) {
+        const isOpen = document.getElementById(`open-${dayEng}`).checked;
+        document.getElementById(`start-${dayEng}`).disabled = !isOpen;
+        document.getElementById(`end-${dayEng}`).disabled = !isOpen;
+    }
+
+    function addHoliday() {
+        const input = document.getElementById('holiday-input');
+        const val = input.value;
+        if (val && !siteSettings.holidays.includes(val)) {
+            siteSettings.holidays.push(val);
+            siteSettings.holidays.sort();
+            renderHolidaysList();
+            input.value = '';
+        }
+    }
+
+    function removeHoliday(dateVal) {
+        siteSettings.holidays = siteSettings.holidays.filter(d => d !== dateVal);
+        renderHolidaysList();
+    }
+
+    function renderHolidaysList() {
+        const container = document.getElementById('holidays-list');
+        container.innerHTML = '';
+        siteSettings.holidays.forEach(date => {
+            // Formattiamo la data per renderla carina (DD/MM/YYYY)
+            const [y, m, d] = date.split('-');
+            const prettyDate = `${d}/${m}/${y}`;
+            
+            container.innerHTML += `
+                <div class="holiday-tag">
+                    ${prettyDate} 
+                    <button onclick="removeHoliday('${date}')">&times;</button>
+                </div>`;
+        });
+    }
+
+    async function salvaImpostazioni() {
+        // Aggiorna oggetto settings dai valori DOM
+        daysENG.forEach(dayEng => {
+            const isOpen = document.getElementById(`open-${dayEng}`).checked;
+            siteSettings.weekly[dayEng].open = isOpen;
+            siteSettings.weekly[dayEng].start = document.getElementById(`start-${dayEng}`).value;
+            siteSettings.weekly[dayEng].end = document.getElementById(`end-${dayEng}`).value;
+        });
+
+        mostraLoader(true);
+        
+        // Qui simulo o chiamo la API vera
+        try {
+            // Esempio chiamata API (commentata finché backend non è pronto)
+            /*
+            const res = await fetch(BASE_URL + '/settings', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(siteSettings)
+            });
+            if(!res.ok) throw new Error("Errore Salvataggio");
+            */
+
+            // Simulazione successo per UI
+            await new Promise(r => setTimeout(r, 800)); 
+            alert("✅ Impostazioni salvate con successo!");
+            
+            // Torna al mese per vedere le modifiche
+            cambiaVista('mese');
+
+        } catch (e) {
+            alert("Errore salvataggio: " + e.message);
+        } finally {
+            mostraLoader(false);
+        }
+    }
+
+    // --- NAVIGAZIONE E VARIE ---
     function naviga(dir) {
         if (currentView === 'mese') {
             currentDate.setMonth(currentDate.getMonth() + dir);

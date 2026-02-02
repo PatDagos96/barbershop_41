@@ -18,8 +18,8 @@
             --panel-bg: #1e1e1e;
             --header-bg: #000000;
             --text-main: #ffffff;
-            --text-muted: #d0d0d0; 
-            --accent: #ffd700;       
+            --text-muted: #d0d0d0;
+            --accent: #ffd700;       /* Oro */
             --accent-hover: #e6c200;
             --border-color: #333;
             --input-bg: #2d2d2d;
@@ -138,6 +138,7 @@
             overflow: hidden; 
             text-overflow: ellipsis;
             font-weight: 600;
+            display: block;
         }
 
         /* VISTA GIORNO & LISTA */
@@ -387,7 +388,8 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header py-2">
-                <h5 class="modal-title fs-6 fw-bold" style="font-family: 'Oswald', sans-serif; letter-spacing: 1px; color: var(--accent);">DETTAGLI APPUNTAMENTO</h5>
+                <!-- FIX: AGGIUNTO ID "modalTitle" CHE MANCAVA -->
+                <h5 class="modal-title fs-6 fw-bold" id="modalTitle" style="font-family: 'Oswald', sans-serif; letter-spacing: 1px; color: var(--accent);">DETTAGLI APPUNTAMENTO</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -410,21 +412,15 @@
                     <div class="col-8">
                         <label class="form-label small">SERVIZIO</label>
                         <select id="appt-servizio" class="form-select">
-                            <option>Taglio donna / uomo</option>
-                            <option>Taglio koreano</option>
-                            <option>Colorazione, ricrescita</option>
-                            <option>Balayage</option>
-                            <option>Flamboyage</option>
-                            <option>Contouring</option>
-                            <option>Keratina lisciante/rimpolpante</option>
-                            <option>Fiale curative e trattamenti</option>
-                            <option>Detox del cuoio capelluto</option>
+                            <option>Taglio Donna</option>
+                            <option>Piega e Stile</option>
+                            <option>Colore Completo</option>
+                            <option>Taglio Uomo</option>
                             <option>Trattamento Speciale</option>
                         </select>
                     </div>
                     <div class="col-4">
                         <label class="form-label small">ORA</label>
-                        <!-- MODIFICA: Ora è un menu a tendina che si riempie da solo -->
                         <select id="appt-ora" class="form-select">
                             <option value="">...</option>
                         </select>
@@ -477,12 +473,15 @@
         scaricaDati();
         scaricaImpostazioni();
         
-        // Listener per caricare orari quando cambiano data o servizio
         document.getElementById('appt-data').addEventListener('change', caricaOrariAdmin);
         document.getElementById('appt-servizio').addEventListener('change', caricaOrariAdmin);
+        
+        setInterval(() => {
+            console.log("Auto-refreshing data...");
+            scaricaDati(); 
+        }, 30000);
     });
 
-    // --- NUOVA FUNZIONE PER CARICARE GLI SLOT IN ADMIN ---
     async function caricaOrariAdmin() {
         const dataVal = document.getElementById('appt-data').value;
         const servizioVal = document.getElementById('appt-servizio').value;
@@ -502,8 +501,6 @@
             
             let slots = dati.orari || [];
 
-            // Se siamo in modifica e la data è quella originale, aggiungiamo l'ora attuale
-            // perché il server la vede occupata da noi stessi
             if (currentOra && dataVal === originalData && !slots.includes(currentOra)) {
                 slots.push(currentOra);
                 slots.sort();
@@ -521,7 +518,6 @@
                 });
             }
             
-            // Ripristina selezione se possibile
             if (currentOra && slots.includes(currentOra)) {
                 oraSelect.value = currentOra;
             }
@@ -631,8 +627,10 @@
             const appsToday = appointments.filter(a => a.data === dateStr);
             
             let dots = '';
-            appsToday.slice(0, 3).forEach(a => { dots += `<div class="appt-indicator">${a.ora}</div>`; });
-            if(appsToday.length > 3) dots += `<div class="appt-indicator" style="background:#444; color:white">+${appsToday.length-3}</div>`;
+            appsToday.slice(0, 3).forEach(a => { 
+                dots += `<div class="appt-indicator">${a.ora} ${a.cliente}</div>`; 
+            });
+            if(appsToday.length > 3) dots += `<div class="appt-indicator" style="background:#444; color:white">+${appsToday.length-3} altri</div>`;
             
             let isHoliday = siteSettings.holidays.includes(dateStr);
             let bgClass = isHoliday ? 'background-color: #3d1a1a;' : ''; 
@@ -800,7 +798,6 @@
         document.getElementById('appt-note').value = "";
         document.getElementById('appt-data').value = currentDate.toISOString().split('T')[0];
         
-        // Reset e carica orari
         document.getElementById('appt-ora').removeAttribute('data-current');
         document.getElementById('appt-data').removeAttribute('data-original');
         caricaOrariAdmin();
@@ -820,12 +817,10 @@
         document.getElementById('appt-data').value = app.data;
         document.getElementById('appt-note').value = app.note || "";
         
-        // Set attributi per la logica di ricaricamento orari
         const oraSelect = document.getElementById('appt-ora');
         oraSelect.setAttribute('data-current', app.ora);
         document.getElementById('appt-data').setAttribute('data-original', app.data);
         
-        // Carica orari e poi seleziona quello corrente
         await caricaOrariAdmin();
         oraSelect.value = app.ora;
 

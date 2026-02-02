@@ -239,7 +239,8 @@
 
             <div class="mb-3">
                 <label>Telefono <span class="obbligatorio">*</span></label>
-                <input type="tel" id="telefono" class="form-control" placeholder="333 1234567">
+                <!-- AGGIUNTO MAXLENGTH PER LIMITE FISICO A 10 CARATTERI -->
+                <input type="tel" id="telefono" class="form-control" placeholder="333 1234567" maxlength="10">
             </div>
 
             <div class="mb-3">
@@ -377,6 +378,21 @@
 
         if (!nome || !telefono || !servizio || !data || !ora) {
             alert("⚠️ Compila tutti i campi obbligatori.");
+            return;
+        }
+
+        // VALIDAZIONE NOME (Deve avere uno spazio per Nome e Cognome)
+        if (nome.indexOf(' ') === -1) {
+            alert("⚠️ Inserisci sia il Nome che il Cognome separati da uno spazio.");
+            return;
+        }
+
+        // VALIDAZIONE TELEFONO (9 o 10 cifre)
+        const telefonoPulito = telefono.replace(/\s/g, '').replace(/-/g, '').replace(/\//g, '');
+        const telefonoRegex = /^\d{9,10}$/;
+        
+        if (!telefonoRegex.test(telefonoPulito)) {
+            alert("⚠️ Numero di telefono non valido! Deve contenere tra 9 e 10 cifre.");
             return;
         }
 

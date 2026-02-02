@@ -8,8 +8,11 @@
     <!-- Bootstrap CSS & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <!-- Font Urban: Oswald e Roboto -->
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <!-- FONT: Oswald (Titoli) e Roboto (Testo) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
@@ -34,6 +37,7 @@
             display: flex; 
             flex-direction: column; 
             overflow: hidden; 
+            margin: 0;
         }
         
         /* HEADER */
@@ -59,24 +63,23 @@
         }
         .brand-title span { color: var(--accent); }
 
-        /* SEARCH BAR STYLES */
+        /* SEARCH BAR */
         .search-container {
             display: flex;
             align-items: center;
             background: #222;
             border: 1px solid #444;
-            border-radius: 20px;
-            padding: 5px 15px;
-            width: 100%;
-            max-width: 300px;
+            border-radius: 4px;
+            padding: 5px 10px;
+            margin: 0 10px;
         }
         .search-input {
             background: transparent;
             border: none;
             color: white;
-            width: 100%;
             outline: none;
             font-size: 0.9rem;
+            width: 150px;
         }
         .search-btn {
             background: transparent;
@@ -87,40 +90,211 @@
 
         .nav-controls { display: flex; align-items: center; gap: 10px; }
         
-        /* --- MOBILE OPTIMIZATION --- */
+        .date-display { 
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.2rem; 
+            font-weight: 500; 
+            color: var(--accent); 
+            min-width: 140px; 
+            text-align: center; 
+            text-transform: uppercase;
+        }
+        
+        .btn-nav { border: none; background: none; font-size: 1.2rem; color: var(--text-main); cursor: pointer; padding: 0 10px; }
+        .btn-nav:hover { color: var(--accent); }
+        
+        /* BOTTONI DARK */
+        .btn-outline-dark {
+            color: var(--text-main);
+            border-color: var(--border-color);
+            font-family: 'Oswald', sans-serif;
+            letter-spacing: 1px;
+        }
+        .btn-view-toggle.active { 
+            background-color: var(--accent) !important; 
+            color: #000 !important; 
+            border-color: var(--accent) !important;
+            font-weight: bold;
+        }
+
+        /* AREA CONTENUTO */
+        .content-area { flex-grow: 1; overflow-y: auto; padding: 15px; padding-bottom: 90px; }
+
+        /* === CALENDARIO (Il cuore del problema) === */
+        .calendar-grid { 
+            display: grid; 
+            grid-template-columns: repeat(7, 1fr); /* 7 Colonne uguali */
+            gap: 5px; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            width: 100%;
+        }
+        
+        .week-day { 
+            text-align: center; 
+            font-weight: bold; 
+            color: var(--accent); 
+            padding: 10px; 
+            text-transform: uppercase; 
+            font-family: 'Oswald', sans-serif;
+            border-bottom: 1px solid #333;
+            margin-bottom: 5px;
+        }
+        
+        .day-cell {
+            background: var(--panel-bg); 
+            min-height: 100px; 
+            border-radius: 4px; 
+            padding: 5px; 
+            cursor: pointer; 
+            border: 1px solid var(--border-color); 
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .day-cell:hover { border-color: var(--accent); background-color: #252525; }
+        
+        .day-number { 
+            font-weight: bold; 
+            color: var(--text-main); 
+            font-size: 1.2rem; 
+            margin-bottom: 5px; 
+            font-family: 'Oswald', sans-serif;
+            align-self: flex-end; /* Numero in alto a destra */
+        }
+        .day-today { 
+            background-color: rgba(255, 215, 0, 0.1); 
+            border: 1px solid var(--accent); 
+        }
+        
+        .appt-indicator {
+            background-color: var(--accent); 
+            color: #000; 
+            font-size: 0.75rem; 
+            padding: 3px 5px; 
+            border-radius: 3px; 
+            margin-bottom: 3px; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis;
+            font-weight: 700;
+            display: block;
+            width: 100%;
+        }
+
+        /* VISTA GIORNO & LISTA */
+        .day-view-container { max-width: 800px; margin: 0 auto; }
+        .appt-card {
+            background: var(--panel-bg); 
+            border-radius: 6px; 
+            padding: 15px; 
+            margin-bottom: 12px; 
+            display: flex; 
+            align-items: center; 
+            border-left: 4px solid var(--accent); 
+            border-bottom: 1px solid #000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3); 
+            cursor: pointer;
+        }
+        
+        .time-box { 
+            font-size: 1.4rem; 
+            font-weight: 700; 
+            color: var(--accent); 
+            padding-right: 15px; 
+            border-right: 1px solid var(--border-color); 
+            margin-right: 15px; 
+            min-width: 90px; 
+            text-align: center;
+            font-family: 'Oswald', sans-serif;
+        }
+        .info-box { flex-grow: 1; overflow: hidden; }
+        .client-name { font-weight: bold; font-size: 1.1rem; color: var(--text-main); }
+        .service-name { color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; }
+        .details-row { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; }
+        
+        /* IMPOSTAZIONI */
+        .settings-container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: var(--panel-bg); 
+            padding: 25px; 
+            border-radius: 8px; 
+            border: 1px solid var(--border-color);
+        }
+        
+        .section-title {
+            color: var(--accent);
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .day-setting-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
+        
+        .holiday-tag { 
+            background-color: var(--danger); 
+            color: white; 
+            padding: 5px 12px; 
+            border-radius: 4px; 
+            margin-right: 5px; 
+            margin-bottom: 5px; 
+            font-weight: bold;
+        }
+        
+        /* FORM STYLES */
+        .form-control, .form-select {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            border-radius: 4px;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #333;
+            border-color: var(--accent);
+            color: var(--text-main);
+            box-shadow: none;
+        }
+        .form-label { color: var(--text-muted); font-weight: 600; }
+        
+        /* MODAL */
+        .modal-content {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+        .modal-header, .modal-footer { border-color: var(--border-color); }
+        .btn-close { filter: invert(1); }
+
+        /* FAB */
+        .fab-btn {
+            position: fixed; bottom: 30px; right: 30px; 
+            background-color: var(--accent); 
+            color: #000; 
+            width: 65px; height: 65px; 
+            border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 35px; 
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); 
+            border: none; 
+            cursor: pointer; 
+            z-index: 1000;
+        }
+
+        .loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; display:flex; justify-content:center; align-items:center; }
+
+        /* MOBILE FIXES */
         @media (max-width: 768px) {
-            .admin-header {
-                flex-direction: column;
-                gap: 10px;
-                padding: 15px;
-            }
-            .search-container { width: 100%; order: 2; margin-bottom: 5px; } /* Search bar visibile su mobile */
-            .nav-controls {
-                width: 100%;
-                justify-content: space-between;
-                order: 3;
-            }
-            .btn-group {
-                width: 100%;
-                order: 4;
-            }
-            .btn-view-toggle { flex: 1; }
-            
-            .brand-title { width: 100%; text-align: center; order: 1; margin-bottom: 5px; }
-
-            .day-cell { min-height: 70px; padding: 3px; }
-            .day-number { font-size: 0.9rem; }
-            .appt-indicator { font-size: 0.6rem; padding: 1px 3px; }
-
-            .day-setting-row {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-            .day-setting-row > div { width: 100%; }
-            .d-flex.gap-2.align-items-center { 
-                justify-content: space-between; 
-            }
+            .admin-header { flex-direction: column; align-items: stretch; }
+            .nav-controls { justify-content: space-between; margin-bottom: 10px; }
+            .search-container { margin: 10px 0; width: 100%; max-width: none; }
+            .search-input { width: 100%; }
+            .calendar-grid { gap: 2px; }
+            .day-cell { min-height: 70px; padding: 2px; }
+            .appt-indicator { font-size: 0.6rem; padding: 2px; }
         }
     </style>
 </head>
@@ -129,9 +303,8 @@
 <div class="admin-header">
     <div class="brand-title">BARBER<span>SHOP</span> 41 <small style="font-size: 0.8rem; color: #aaa;">ADMIN</small></div>
     
-    <!-- NUOVA BARRA DI RICERCA -->
     <div class="search-container">
-        <input type="text" id="searchInput" class="search-input" placeholder="Cerca cliente o tel..." onkeyup="sePremiInvio(event)">
+        <input type="text" id="searchInput" class="search-input" placeholder="Cerca cliente..." onkeyup="sePremiInvio(event)">
         <button class="search-btn" onclick="cercaCliente()"><i class="bi bi-search"></i></button>
     </div>
 
@@ -144,7 +317,7 @@
         </div>
     </div>
 
-    <div class="btn-group" role="group">
+    <div class="btn-group w-100" role="group">
         <button type="button" class="btn btn-outline-dark btn-view-toggle active" id="btn-month" onclick="cambiaVista('mese')">MESE</button>
         <button type="button" class="btn btn-outline-dark btn-view-toggle" id="btn-day" onclick="cambiaVista('giorno')">GIORNO</button>
         <button type="button" class="btn btn-outline-dark btn-view-toggle" id="btn-settings" onclick="cambiaVista('impostazioni')"><i class="bi bi-gear-fill"></i></button>
@@ -152,8 +325,10 @@
 </div>
 
 <div class="content-area">
+    <!-- Vista Mese -->
     <div id="month-view" class="calendar-grid"></div>
 
+    <!-- Vista Giorno -->
     <div id="day-view" class="day-view-container" style="display: none;">
         <div id="bulk-actions" class="d-none mb-3 text-end">
             <button class="btn btn-danger btn-sm" onclick="eliminaSelezionati()">
@@ -163,19 +338,20 @@
         <div id="day-list"></div>
     </div>
     
-    <!-- NUOVA VISTA RISULTATI RICERCA -->
+    <!-- Vista Ricerca -->
     <div id="search-view" class="day-view-container" style="display: none;">
         <h5 class="text-white mb-3">Risultati Ricerca <button class="btn btn-sm btn-outline-secondary float-end" onclick="chiudiRicerca()">Chiudi</button></h5>
         <div id="search-results-list"></div>
     </div>
 
+    <!-- Vista Impostazioni -->
     <div id="settings-view" class="container" style="display: none;">
         <div class="settings-container">
             <div class="section-title"><i class="bi bi-clock"></i> ORARI SETTIMANALI</div>
             <div id="weekly-hours-list"></div>
             
             <div class="section-title mt-4"><i class="bi bi-calendar-x"></i> FERIE & CHIUSURE</div>
-            <div class="alert alert-info-dark small p-2 mb-2 text-white-50">
+            <div class="alert alert-dark border-secondary small p-2 mb-2 text-white-50">
                 <i class="bi bi-info-circle"></i> Usa "Dal" per un giorno solo.
             </div>
             <div class="input-group mb-3">
@@ -197,13 +373,13 @@
     </div>
 </div>
 
-<!-- ... existing code (FAB, Loader, Modal) ... -->
 <button class="fab-btn" id="fab-add" onclick="apriNuovo()" title="Nuovo"><i class="bi bi-plus"></i></button>
 
 <div id="loader" class="loading-overlay" style="display:none;">
     <div class="spinner-border text-warning" role="status"></div>
 </div>
 
+<!-- Modal Appuntamento -->
 <div class="modal fade" id="apptModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -271,7 +447,6 @@
     let currentView = 'mese';
     let appointments = [];
     
-    // ... existing code (siteSettings, etc.) ...
     let siteSettings = {
         weekly: {
             "Monday": { open: false, start: "09:00", end: "19:00" },
@@ -302,19 +477,14 @@
         }, 30000);
     });
 
-    // --- LOGICA DI RICERCA ---
+    // --- FUNZIONI DI RICERCA ---
     function sePremiInvio(event) {
-        if (event.key === "Enter") {
-            cercaCliente();
-        }
+        if (event.key === "Enter") cercaCliente();
     }
 
     async function cercaCliente() {
         const query = document.getElementById('searchInput').value.trim();
-        if (!query) {
-            alert("Inserisci un nome o un numero!");
-            return;
-        }
+        if (!query) return alert("Inserisci un nome o un numero!");
 
         mostraLoader(true);
         try {
@@ -325,25 +495,15 @@
             } else {
                 alert("Errore ricerca");
             }
-        } catch (e) {
-            console.error(e);
-            alert("Errore di rete");
-        } finally {
-            mostraLoader(false);
-        }
+        } catch (e) { console.error(e); alert("Errore di rete"); }
+        finally { mostraLoader(false); }
     }
 
     function mostraRisultatiRicerca(risultati) {
-        // Nascondi le altre viste
         document.getElementById('month-view').style.display = 'none';
         document.getElementById('day-view').style.display = 'none';
         document.getElementById('settings-view').style.display = 'none';
-        
-        // Attiva la vista ricerca
-        const searchView = document.getElementById('search-view');
-        searchView.style.display = 'block';
-        
-        // Disattiva bottoni menu
+        document.getElementById('search-view').style.display = 'block';
         document.querySelectorAll('.btn-view-toggle').forEach(b => b.classList.remove('active'));
 
         const container = document.getElementById('search-results-list');
@@ -371,10 +531,10 @@
     function chiudiRicerca() {
         document.getElementById('search-view').style.display = 'none';
         document.getElementById('searchInput').value = '';
-        cambiaVista('mese'); // Torna alla vista default
+        cambiaVista('mese');
     }
 
-    // ... existing code (caricaOrariAdmin, scaricaDati, render, naviga, modal, etc.) ...
+    // --- CARICAMENTO ORARI DINAMICO ---
     async function caricaOrariAdmin() {
         const dataVal = document.getElementById('appt-data').value;
         const servizioVal = document.getElementById('appt-servizio').value;
@@ -420,13 +580,14 @@
         }
     }
 
+    // --- FUNZIONI CORE ---
     async function scaricaDati() {
         mostraLoader(true);
         try {
             const res = await fetch(BASE_URL + '/lista_appuntamenti');
             if (res.ok) appointments = await res.json();
             if (currentView !== 'impostazioni' && document.getElementById('search-view').style.display === 'none') {
-                render(); // Aggiorna la vista solo se non siamo in impostazioni o ricerca
+                render(); 
             }
         } catch (error) { console.error(error); } 
         finally { mostraLoader(false); }
@@ -448,7 +609,7 @@
         document.getElementById('month-view').style.display = 'none';
         document.getElementById('day-view').style.display = 'none';
         document.getElementById('settings-view').style.display = 'none';
-        document.getElementById('search-view').style.display = 'none'; // Nascondi ricerca
+        document.getElementById('search-view').style.display = 'none';
         document.getElementById('fab-add').style.display = 'flex';
         
         document.querySelectorAll('.btn-view-toggle').forEach(b => b.classList.remove('active'));
@@ -523,10 +684,11 @@
             const appsToday = appointments.filter(a => a.data === dateStr);
             
             let dots = '';
+            // Qui visualizziamo i nomi dei clienti!
             appsToday.slice(0, 3).forEach(a => { 
                 dots += `<div class="appt-indicator">${a.ora} ${a.cliente}</div>`; 
             });
-            if(appsToday.length > 3) dots += `<div class="appt-indicator" style="background:#444; color:white">+${appsToday.length-3} altri</div>`;
+            if(appsToday.length > 3) dots += `<div class="appt-indicator" style="background:#444; color:white">+${appsToday.length-3}</div>`;
             
             let isHoliday = siteSettings.holidays.includes(dateStr);
             let bgClass = isHoliday ? 'background-color: #3d1a1a;' : ''; 

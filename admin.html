@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Admin - Barbershop 41</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <!-- FIX CRITICO: viewport-fit=cover e user-scalable=no per evitare zoom indesiderati -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     
     <!-- Bootstrap CSS & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -29,15 +30,21 @@
             --danger: #ff4444;
         }
 
-        body { 
+        /* FIX ALTEZZA MOBILE (100dvh invece di 100vh) */
+        html, body {
+            height: 100%;
+            height: 100dvh; /* Dynamic Viewport Height */
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Blocca scroll del body, scrolla solo content-area */
             background-color: var(--bg-color); 
             color: var(--text-main);
             font-family: 'Roboto', sans-serif; 
-            height: 100vh; 
+        }
+
+        body { 
             display: flex; 
             flex-direction: column; 
-            overflow: hidden; 
-            margin: 0;
         }
         
         /* HEADER */
@@ -51,6 +58,7 @@
             z-index: 100;
             flex-wrap: wrap;
             gap: 10px;
+            flex-shrink: 0; /* Impedisce all'header di schiacciarsi */
         }
         
         .brand-title {
@@ -71,7 +79,7 @@
             border: 1px solid #444;
             border-radius: 4px;
             padding: 5px 10px;
-            flex-grow: 1; /* Occupa spazio disponibile */
+            flex-grow: 1; 
             max-width: 300px;
         }
         .search-input {
@@ -79,7 +87,7 @@
             border: none;
             color: white;
             outline: none;
-            font-size: 0.9rem;
+            font-size: 16px; /* 16px impedisce zoom su iPhone */
             width: 100%;
         }
         .search-btn {
@@ -123,8 +131,8 @@
             flex-grow: 1; 
             overflow-y: auto; 
             padding: 10px; 
-            /* FIX: SPAZIO EXTRA SOTTO PER NON COPRIRE I GIORNI COL TASTO + */
-            padding-bottom: 120px; 
+            padding-bottom: 150px; /* Spazio extra per scrollare oltre il FAB */
+            -webkit-overflow-scrolling: touch; /* Scroll fluido su iOS */
         }
 
         /* CALENDARIO */
@@ -268,6 +276,7 @@
             border: 1px solid var(--border-color);
             color: var(--text-main);
             border-radius: 4px;
+            font-size: 16px; /* FIX ZOOM IPHONE */
         }
         .form-control:focus, .form-select:focus {
             background-color: #333;
@@ -410,9 +419,9 @@
     <div class="spinner-border text-warning" role="status"></div>
 </div>
 
-<!-- Modal Appuntamento -->
+<!-- Modal Appuntamento (Scrollable per evitare che la tastiera lo copra) -->
 <div class="modal fade" id="apptModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header py-2">
                 <h5 class="modal-title fs-6 fw-bold" id="modalTitle" style="font-family: 'Oswald', sans-serif; letter-spacing: 1px; color: var(--accent);">DETTAGLI APPUNTAMENTO</h5>
@@ -478,7 +487,6 @@
     let currentView = 'mese';
     let appointments = [];
     
-    // ... existing code (siteSettings, etc.) ...
     let siteSettings = {
         weekly: {
             "Monday": { open: false, start: "09:00", end: "19:00" },
@@ -503,8 +511,7 @@
         document.getElementById('appt-data').addEventListener('change', caricaOrariAdmin);
         document.getElementById('appt-servizio').addEventListener('change', caricaOrariAdmin);
         
-        // --- HO RIMOSSO L'AUTO-REFRESH (setInterval) ---
-        // Ora si aggiorna solo quando carichi la pagina o clicchi il bottone aggiorna
+        // AUTO-REFRESH RIMOSSO come richiesto
     });
 
     // --- FUNZIONI DI RICERCA ---

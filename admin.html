@@ -43,7 +43,7 @@
         /* HEADER */
         .admin-header {
             background-color: var(--header-bg);
-            padding: 15px 20px;
+            padding: 10px 15px;
             border-bottom: 2px solid var(--accent);
             display: flex;
             justify-content: space-between;
@@ -57,7 +57,7 @@
             font-family: 'Oswald', sans-serif;
             font-weight: 700; 
             color: var(--text-main); 
-            font-size: 1.4rem;
+            font-size: 1.2rem;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
@@ -71,7 +71,8 @@
             border: 1px solid #444;
             border-radius: 4px;
             padding: 5px 10px;
-            margin: 0 10px;
+            flex-grow: 1; /* Occupa spazio disponibile */
+            max-width: 300px;
         }
         .search-input {
             background: transparent;
@@ -79,7 +80,7 @@
             color: white;
             outline: none;
             font-size: 0.9rem;
-            width: 150px;
+            width: 100%;
         }
         .search-btn {
             background: transparent;
@@ -88,19 +89,19 @@
             cursor: pointer;
         }
 
-        .nav-controls { display: flex; align-items: center; gap: 10px; }
+        .nav-controls { display: flex; align-items: center; gap: 5px; }
         
         .date-display { 
             font-family: 'Oswald', sans-serif;
-            font-size: 1.2rem; 
+            font-size: 1.1rem; 
             font-weight: 500; 
             color: var(--accent); 
-            min-width: 140px; 
+            min-width: 120px; 
             text-align: center; 
             text-transform: uppercase;
         }
         
-        .btn-nav { border: none; background: none; font-size: 1.2rem; color: var(--text-main); cursor: pointer; padding: 0 10px; }
+        .btn-nav { border: none; background: none; font-size: 1.2rem; color: var(--text-main); cursor: pointer; padding: 0 5px; }
         .btn-nav:hover { color: var(--accent); }
         
         /* BOTTONI DARK */
@@ -118,13 +119,19 @@
         }
 
         /* AREA CONTENUTO */
-        .content-area { flex-grow: 1; overflow-y: auto; padding: 15px; padding-bottom: 90px; }
+        .content-area { 
+            flex-grow: 1; 
+            overflow-y: auto; 
+            padding: 10px; 
+            /* FIX: SPAZIO EXTRA SOTTO PER NON COPRIRE I GIORNI COL TASTO + */
+            padding-bottom: 120px; 
+        }
 
-        /* === CALENDARIO (Il cuore del problema) === */
+        /* CALENDARIO */
         .calendar-grid { 
             display: grid; 
-            grid-template-columns: repeat(7, 1fr); /* 7 Colonne uguali */
-            gap: 5px; 
+            grid-template-columns: repeat(7, 1fr); 
+            gap: 4px; 
             max-width: 1200px; 
             margin: 0 auto; 
             width: 100%;
@@ -134,18 +141,19 @@
             text-align: center; 
             font-weight: bold; 
             color: var(--accent); 
-            padding: 10px; 
+            padding: 5px; 
             text-transform: uppercase; 
             font-family: 'Oswald', sans-serif;
             border-bottom: 1px solid #333;
             margin-bottom: 5px;
+            font-size: 0.8rem;
         }
         
         .day-cell {
             background: var(--panel-bg); 
-            min-height: 100px; 
+            min-height: 90px; 
             border-radius: 4px; 
-            padding: 5px; 
+            padding: 4px; 
             cursor: pointer; 
             border: 1px solid var(--border-color); 
             position: relative;
@@ -158,10 +166,10 @@
         .day-number { 
             font-weight: bold; 
             color: var(--text-main); 
-            font-size: 1.2rem; 
-            margin-bottom: 5px; 
+            font-size: 1rem; 
+            margin-bottom: 2px; 
             font-family: 'Oswald', sans-serif;
-            align-self: flex-end; /* Numero in alto a destra */
+            align-self: flex-end; 
         }
         .day-today { 
             background-color: rgba(255, 215, 0, 0.1); 
@@ -171,10 +179,10 @@
         .appt-indicator {
             background-color: var(--accent); 
             color: #000; 
-            font-size: 0.75rem; 
-            padding: 3px 5px; 
-            border-radius: 3px; 
-            margin-bottom: 3px; 
+            font-size: 0.7rem; 
+            padding: 2px 4px; 
+            border-radius: 2px; 
+            margin-bottom: 2px; 
             white-space: nowrap; 
             overflow: hidden; 
             text-overflow: ellipsis;
@@ -189,7 +197,7 @@
             background: var(--panel-bg); 
             border-radius: 6px; 
             padding: 15px; 
-            margin-bottom: 12px; 
+            margin-bottom: 10px; 
             display: flex; 
             align-items: center; 
             border-left: 4px solid var(--accent); 
@@ -199,27 +207,35 @@
         }
         
         .time-box { 
-            font-size: 1.4rem; 
+            font-size: 1.2rem; 
             font-weight: 700; 
             color: var(--accent); 
-            padding-right: 15px; 
+            padding-right: 10px; 
             border-right: 1px solid var(--border-color); 
-            margin-right: 15px; 
-            min-width: 90px; 
+            margin-right: 10px; 
+            min-width: 70px; 
             text-align: center;
             font-family: 'Oswald', sans-serif;
         }
         .info-box { flex-grow: 1; overflow: hidden; }
-        .client-name { font-weight: bold; font-size: 1.1rem; color: var(--text-main); }
-        .service-name { color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; }
-        .details-row { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; }
+        .client-name { font-weight: bold; font-size: 1rem; color: var(--text-main); }
+        .service-name { color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; }
+        .details-row { color: var(--text-muted); font-size: 0.8rem; margin-top: 2px; }
         
+        /* Checkbox Custom */
+        .select-mode-check {
+            accent-color: var(--accent);
+            transform: scale(1.3);
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
         /* IMPOSTAZIONI */
         .settings-container { 
             max-width: 800px; 
             margin: 0 auto; 
             background: var(--panel-bg); 
-            padding: 25px; 
+            padding: 20px; 
             border-radius: 8px; 
             border: 1px solid var(--border-color);
         }
@@ -227,22 +243,23 @@
         .section-title {
             color: var(--accent);
             font-family: 'Oswald', sans-serif;
-            font-size: 1.2rem;
-            margin-bottom: 15px;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
             border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
+            padding-bottom: 5px;
         }
 
-        .day-setting-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
+        .day-setting-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-color); }
         
         .holiday-tag { 
             background-color: var(--danger); 
             color: white; 
-            padding: 5px 12px; 
+            padding: 4px 10px; 
             border-radius: 4px; 
             margin-right: 5px; 
             margin-bottom: 5px; 
             font-weight: bold;
+            font-size: 0.9rem;
         }
         
         /* FORM STYLES */
@@ -269,17 +286,19 @@
         .modal-header, .modal-footer { border-color: var(--border-color); }
         .btn-close { filter: invert(1); }
 
-        /* FAB */
+        /* FAB - TASTO + */
         .fab-btn {
-            position: fixed; bottom: 30px; right: 30px; 
+            position: fixed; 
+            bottom: 30px; 
+            right: 30px; 
             background-color: var(--accent); 
             color: #000; 
             width: 65px; height: 65px; 
             border-radius: 50%; 
             display: flex; align-items: center; justify-content: center; 
             font-size: 35px; 
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); 
-            border: none; 
+            box-shadow: 0 5px 25px rgba(0,0,0,0.5); 
+            border: 2px solid #000; 
             cursor: pointer; 
             z-index: 1000;
         }
@@ -288,13 +307,22 @@
 
         /* MOBILE FIXES */
         @media (max-width: 768px) {
-            .admin-header { flex-direction: column; align-items: stretch; }
-            .nav-controls { justify-content: space-between; margin-bottom: 10px; }
-            .search-container { margin: 10px 0; width: 100%; max-width: none; }
-            .search-input { width: 100%; }
-            .calendar-grid { gap: 2px; }
-            .day-cell { min-height: 70px; padding: 2px; }
-            .appt-indicator { font-size: 0.6rem; padding: 2px; }
+            .admin-header { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px; }
+            .nav-controls { justify-content: space-between; order: 2; }
+            .search-container { order: 3; max-width: none; width: 100%; margin: 0; }
+            .btn-group { order: 4; }
+            
+            /* Calndario compatto */
+            .day-cell { min-height: 60px; padding: 2px; }
+            .day-number { font-size: 0.9rem; }
+            .appt-indicator { font-size: 0.6rem; padding: 1px 2px; height: 14px; }
+
+            /* FAB più piccolo su mobile e sollevato se serve */
+            .fab-btn { 
+                width: 55px; height: 55px; 
+                font-size: 28px; 
+                bottom: 20px; right: 20px; 
+            }
         }
     </style>
 </head>
@@ -303,18 +331,21 @@
 <div class="admin-header">
     <div class="brand-title">BARBER<span>SHOP</span> 41 <small style="font-size: 0.8rem; color: #aaa;">ADMIN</small></div>
     
-    <div class="search-container">
-        <input type="text" id="searchInput" class="search-input" placeholder="Cerca cliente..." onkeyup="sePremiInvio(event)">
-        <button class="search-btn" onclick="cercaCliente()"><i class="bi bi-search"></i></button>
-    </div>
-
     <div class="nav-controls">
+        <!-- Tasto AGGIORNA MANUALE -->
+        <button class="btn btn-sm btn-outline-dark me-1" onclick="scaricaDati()" title="Aggiorna Dati"><i class="bi bi-arrow-clockwise"></i></button>
         <button class="btn btn-sm btn-outline-dark" style="border-color: #666; color: #eee;" onclick="vaiOggi()">Oggi</button>
+        
         <div class="d-flex align-items-center">
             <button class="btn-nav" onclick="naviga(-1)"><i class="bi bi-chevron-left"></i></button>
             <div class="date-display" id="dateDisplay">...</div>
             <button class="btn-nav" onclick="naviga(1)"><i class="bi bi-chevron-right"></i></button>
         </div>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" class="search-input" placeholder="Cerca cliente..." onkeyup="sePremiInvio(event)">
+        <button class="search-btn" onclick="cercaCliente()"><i class="bi bi-search"></i></button>
     </div>
 
     <div class="btn-group w-100" role="group">
@@ -447,6 +478,7 @@
     let currentView = 'mese';
     let appointments = [];
     
+    // ... existing code (siteSettings, etc.) ...
     let siteSettings = {
         weekly: {
             "Monday": { open: false, start: "09:00", end: "19:00" },
@@ -471,10 +503,8 @@
         document.getElementById('appt-data').addEventListener('change', caricaOrariAdmin);
         document.getElementById('appt-servizio').addEventListener('change', caricaOrariAdmin);
         
-        setInterval(() => {
-            console.log("Auto-refreshing data...");
-            scaricaDati(); 
-        }, 30000);
+        // --- HO RIMOSSO L'AUTO-REFRESH (setInterval) ---
+        // Ora si aggiorna solo quando carichi la pagina o clicchi il bottone aggiorna
     });
 
     // --- FUNZIONI DI RICERCA ---
@@ -684,7 +714,6 @@
             const appsToday = appointments.filter(a => a.data === dateStr);
             
             let dots = '';
-            // Qui visualizziamo i nomi dei clienti!
             appsToday.slice(0, 3).forEach(a => { 
                 dots += `<div class="appt-indicator">${a.ora} ${a.cliente}</div>`; 
             });

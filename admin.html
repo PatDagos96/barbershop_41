@@ -431,12 +431,13 @@
                 <input type="hidden" id="appt-id">
                 <div class="mb-2">
                     <label class="form-label small">CLIENTE <span class="text-danger">*</span></label>
-                    <input type="text" id="appt-cliente" class="form-control" placeholder="Nome">
+                    <input type="text" id="appt-cliente" class="form-control" placeholder="Nome Cognome">
                 </div>
                 <div class="row mb-2">
                     <div class="col-6">
-                        <label class="form-label small">TELEFONO</label>
-                        <input type="tel" id="appt-telefono" class="form-control">
+                        <!-- MODIFICA: Telefono obbligatorio e maxlength 10 -->
+                        <label class="form-label small">TELEFONO <span class="text-danger">*</span></label>
+                        <input type="tel" id="appt-telefono" class="form-control" maxlength="10">
                     </div>
                     <div class="col-6">
                         <label class="form-label small">DATA</label>
@@ -510,8 +511,6 @@
         
         document.getElementById('appt-data').addEventListener('change', caricaOrariAdmin);
         document.getElementById('appt-servizio').addEventListener('change', caricaOrariAdmin);
-        
-        // AUTO-REFRESH RIMOSSO come richiesto
     });
 
     // --- FUNZIONI DI RICERCA ---
@@ -931,7 +930,26 @@
             ora: document.getElementById('appt-ora').value,
             note: document.getElementById('appt-note').value
         };
-        if(!payload.cliente || !payload.data || !payload.ora) return alert("Compila i campi obbligatori");
+        // 1. Controllo campi obbligatori (Ora include Telefono)
+        if(!payload.cliente || !payload.telefono || !payload.data || !payload.ora) {
+            return alert("Compila tutti i campi obbligatori (Cliente, Telefono, Data, Ora)");
+        }
+
+        // 2. Controllo Nome e Cognome (deve contenere uno spazio)
+        const nomeTrimmed = payload.cliente.trim();
+        if (nomeTrimmed.indexOf(' ') === -1) {
+            return alert("Inserisci sia il Nome che il Cognome separati da uno spazio.");
+        }
+
+        // 3. Validazione Numero Telefono: 9 o 10 cifre
+        // Rimuoviamo spazi, trattini o slash
+        const telefonoPulito = payload.telefono.replace(/\s/g, '').replace(/-/g, '').replace(/\//g, '');
+        // Regex: Da 9 a 10 cifre numeriche
+        const telefonoRegex = /^\d{9,10}$/;
+        
+        if (!telefonoRegex.test(telefonoPulito)) {
+            return alert("Numero di telefono non valido! Deve contenere tra 9 e 10 cifre.");
+        }
 
         mostraLoader(true);
         let url = id ? `/modifica/${id}` : `/prenota?${new URLSearchParams({nome: payload.cliente, telefono: payload.telefono, servizio: payload.servizio, data: payload.data, ora: payload.ora, note: payload.note}).toString()}`;

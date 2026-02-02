@@ -18,8 +18,8 @@
             --panel-bg: #1e1e1e;
             --header-bg: #000000;
             --text-main: #ffffff;
-            --text-muted: #d0d0d0; /* Reso più chiaro per leggibilità */
-            --accent: #ffd700;       /* Oro */
+            --text-muted: #d0d0d0; 
+            --accent: #ffd700;       
             --accent-hover: #e6c200;
             --border-color: #333;
             --input-bg: #2d2d2d;
@@ -169,7 +169,7 @@
         .info-box { flex-grow: 1; overflow: hidden; }
         .client-name { font-weight: bold; font-size: 1.1rem; color: var(--text-main); text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
         .service-name { color: var(--text-muted); font-weight: 500; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
-        .details-row { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; } /* Più chiaro */
+        .details-row { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; }
         
         /* Checkbox Custom */
         .select-mode-check {
@@ -248,13 +248,11 @@
         .modal-footer { border-top: 1px solid var(--border-color); }
         .btn-close { filter: invert(1); }
 
-        /* Label migliorate per leggibilità */
         .form-label {
             color: var(--text-muted) !important;
             font-weight: 600 !important;
         }
         
-        /* Alert info */
         .alert-info-dark {
             background-color: rgba(255, 255, 255, 0.1);
             color: var(--text-main);
@@ -412,16 +410,24 @@
                     <div class="col-8">
                         <label class="form-label small">SERVIZIO</label>
                         <select id="appt-servizio" class="form-select">
-                            <option>Taglio Donna</option>
-                            <option>Piega e Stile</option>
-                            <option>Colore Completo</option>
-                            <option>Taglio Uomo</option>
+                            <option>Taglio donna / uomo</option>
+                            <option>Taglio koreano</option>
+                            <option>Colorazione, ricrescita</option>
+                            <option>Balayage</option>
+                            <option>Flamboyage</option>
+                            <option>Contouring</option>
+                            <option>Keratina lisciante/rimpolpante</option>
+                            <option>Fiale curative e trattamenti</option>
+                            <option>Detox del cuoio capelluto</option>
                             <option>Trattamento Speciale</option>
                         </select>
                     </div>
                     <div class="col-4">
                         <label class="form-label small">ORA</label>
-                        <input type="text" id="appt-ora" class="form-control" placeholder="09:00">
+                        <!-- MODIFICA: Ora è un menu a tendina che si riempie da solo -->
+                        <select id="appt-ora" class="form-select">
+                            <option value="">...</option>
+                        </select>
                     </div>
                 </div>
                 <div class="mb-2">
@@ -470,7 +476,60 @@
     document.addEventListener('DOMContentLoaded', () => {
         scaricaDati();
         scaricaImpostazioni();
+        
+        // Listener per caricare orari quando cambiano data o servizio
+        document.getElementById('appt-data').addEventListener('change', caricaOrariAdmin);
+        document.getElementById('appt-servizio').addEventListener('change', caricaOrariAdmin);
     });
+
+    // --- NUOVA FUNZIONE PER CARICARE GLI SLOT IN ADMIN ---
+    async function caricaOrariAdmin() {
+        const dataVal = document.getElementById('appt-data').value;
+        const servizioVal = document.getElementById('appt-servizio').value;
+        const oraSelect = document.getElementById('appt-ora');
+        
+        if (!dataVal) return;
+
+        const currentOra = oraSelect.getAttribute('data-current');
+        const originalData = document.getElementById('appt-data').getAttribute('data-original');
+
+        oraSelect.innerHTML = '<option>Caricamento...</option>';
+
+        try {
+            const params = new URLSearchParams({ data: dataVal, servizio: servizioVal || "Taglio Uomo" });
+            const res = await fetch(BASE_URL + '/orari-disponibili?' + params.toString());
+            const dati = await res.json();
+            
+            let slots = dati.orari || [];
+
+            // Se siamo in modifica e la data è quella originale, aggiungiamo l'ora attuale
+            // perché il server la vede occupata da noi stessi
+            if (currentOra && dataVal === originalData && !slots.includes(currentOra)) {
+                slots.push(currentOra);
+                slots.sort();
+            }
+
+            oraSelect.innerHTML = '';
+            if (slots.length === 0) {
+                oraSelect.innerHTML = '<option value="">Nessun orario</option>';
+            } else {
+                slots.forEach(ora => {
+                    const opt = document.createElement('option');
+                    opt.value = ora;
+                    opt.textContent = ora;
+                    oraSelect.appendChild(opt);
+                });
+            }
+            
+            // Ripristina selezione se possibile
+            if (currentOra && slots.includes(currentOra)) {
+                oraSelect.value = currentOra;
+            }
+        } catch (e) {
+            console.error(e);
+            oraSelect.innerHTML = '<option value="">Errore</option>';
+        }
+    }
 
     async function scaricaDati() {
         mostraLoader(true);
@@ -576,7 +635,7 @@
             if(appsToday.length > 3) dots += `<div class="appt-indicator" style="background:#444; color:white">+${appsToday.length-3}</div>`;
             
             let isHoliday = siteSettings.holidays.includes(dateStr);
-            let bgClass = isHoliday ? 'background-color: #3d1a1a;' : ''; // Rosso scuro per ferie
+            let bgClass = isHoliday ? 'background-color: #3d1a1a;' : ''; 
             
             const cell = document.createElement('div');
             cell.className = `day-cell ${isToday ? 'day-today' : ''}`;
@@ -733,26 +792,43 @@
     }
 
     function apriNuovo() {
+        document.getElementById('modalTitle').textContent = "Nuova Prenotazione";
         document.getElementById('appt-id').value = ""; 
         document.getElementById('btn-delete').style.display = 'none';
         document.getElementById('appt-cliente').value = "";
         document.getElementById('appt-telefono').value = "";
         document.getElementById('appt-note').value = "";
         document.getElementById('appt-data').value = currentDate.toISOString().split('T')[0];
+        
+        // Reset e carica orari
+        document.getElementById('appt-ora').removeAttribute('data-current');
+        document.getElementById('appt-data').removeAttribute('data-original');
+        caricaOrariAdmin();
+        
         modal.show();
     }
 
-    function apriModifica(id) {
+    async function apriModifica(id) {
         const app = appointments.find(a => a.id === id);
         if(!app) return;
+        document.getElementById('modalTitle').textContent = "Modifica Prenotazione";
         document.getElementById('appt-id').value = app.id;
         document.getElementById('btn-delete').style.display = 'block';
         document.getElementById('appt-cliente').value = app.cliente;
         document.getElementById('appt-telefono').value = app.telefono;
         document.getElementById('appt-servizio').value = app.servizio;
         document.getElementById('appt-data').value = app.data;
-        document.getElementById('appt-ora').value = app.ora;
         document.getElementById('appt-note').value = app.note || "";
+        
+        // Set attributi per la logica di ricaricamento orari
+        const oraSelect = document.getElementById('appt-ora');
+        oraSelect.setAttribute('data-current', app.ora);
+        document.getElementById('appt-data').setAttribute('data-original', app.data);
+        
+        // Carica orari e poi seleziona quello corrente
+        await caricaOrariAdmin();
+        oraSelect.value = app.ora;
+
         modal.show();
     }
 

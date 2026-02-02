@@ -67,13 +67,12 @@ class PrenotazioneUpdate(BaseModel):
     ora: str
     note: Optional[str] = ""
 
-# Modello per validare i dati che arrivano dal pannello Admin (Impostazioni)
+# Modello per validare i dati che arrivano dal pannello Admin
 class SettingsModel(BaseModel):
     weekly: Dict[str, Any]
     holidays: List[str]
 
 # NUOVO MODELLO PER CANCELLAZIONE MULTIPLA
-# Serve a validare la lista di numeri che arriva da admin.html
 class ListaID(BaseModel):
     ids: List[int]
 
@@ -121,6 +120,11 @@ def invia_telegram_admin(messaggio):
 @app.get("/")
 def home():
     return FileResponse("index.html")
+
+# AGGIUNTA PER PWA: Permette di scaricare il manifesto
+@app.get("/manifest.json")
+def get_manifest():
+    return FileResponse("manifest.json")
 
 @app.get("/admin")
 def pannello_admin(username: str = Depends(controlla_credenziali)):
@@ -263,3 +267,16 @@ def cancella_multipli(lista: ListaID, db: Session = Depends(get_db)):
     db.query(models.Appointment).filter(models.Appointment.id.in_(lista.ids)).delete(synchronize_session=False)
     db.commit()
     return {"ok": True, "messaggio": f"Cancellati {len(lista.ids)} appuntamenti"}
+
+# --- NUOVA API RICERCA ---
+@app.get("/cerca-cliente")
+def cerca_cliente(q: str, db: Session = Depends(get_db)):
+    # Cerca appuntamenti dove il nome o il telefono contengono la stringa 'q' (case insensitive)
+    # ILIKE è specifico di PostgreSQL per case-insensitive, ma su SQLite si usa LIKE
+    # Per compatibilità universale usiamo filter con func.lower se necessario, ma qui usiamo il like semplice di SQLAlchemy
+    risultati = db.query(models.Appointment).filter(
+        (models.Appointment.cliente.ilike(f"%{q}%")) | 
+        (models.Appointment.telefono.ilike(f"%{q}%"))
+    ).order_by(models.Appointment.data.desc(), models.Appointment.ora).all()
+    
+    return risultati

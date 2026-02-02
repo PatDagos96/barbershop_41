@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Gestionale Estro Saloon</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     
     <!-- Bootstrap CSS & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -12,14 +12,22 @@
     
     <style>
         :root {
-            --primary: #4a3b32; /* Marrone scuro */
-            --accent: #b08d55;  /* Oro/Bronzo */
-            --bg: #f4efe9;      /* Beige */
+            --primary: #4a3b32; 
+            --accent: #b08d55;
+            --bg: #f4efe9;
             --white: #ffffff;
         }
 
-        body { background-color: var(--bg); font-family: 'Lato', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        body { 
+            background-color: var(--bg); 
+            font-family: 'Lato', sans-serif; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+        }
         
+        /* HEADER FISSO */
         .admin-header {
             background-color: var(--white);
             padding: 10px 20px;
@@ -28,72 +36,130 @@
             justify-content: space-between;
             align-items: center;
             z-index: 100;
+            flex-wrap: wrap; /* Permette a capo su mobile */
+            gap: 10px;
         }
         
+        .brand-title {
+            font-weight: bold; 
+            color: var(--primary); 
+            font-size: 1.2rem;
+        }
+
         .nav-controls { display: flex; align-items: center; gap: 10px; }
-        .date-display { font-size: 1.2rem; font-weight: bold; color: var(--primary); min-width: 180px; text-align: center; text-transform: capitalize;}
+        .date-display { font-size: 1.2rem; font-weight: bold; color: var(--primary); min-width: 150px; text-align: center; text-transform: capitalize;}
         .btn-nav { border: none; background: none; font-size: 1.5rem; color: var(--accent); cursor: pointer; padding: 0 10px;}
-        .btn-nav:hover { color: var(--primary); transform: scale(1.1); }
+        
+        /* AREA CONTENUTO */
+        .content-area { flex-grow: 1; overflow-y: auto; padding: 10px; padding-bottom: 80px; }
 
-        .content-area { flex-grow: 1; overflow-y: auto; padding: 20px; }
-
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; max-width: 1000px; margin: 0 auto; }
-        .week-day { text-align: center; font-weight: bold; color: #888; padding: 5px; text-transform: uppercase; font-size: 0.8rem; }
+        /* CALENDARIO */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; max-width: 1000px; margin: 0 auto; }
+        .week-day { text-align: center; font-weight: bold; color: #888; padding: 5px; text-transform: uppercase; font-size: 0.75rem; }
         
         .day-cell {
-            background: var(--white); min-height: 100px; border-radius: 8px; padding: 8px; cursor: pointer; border: 1px solid transparent; box-shadow: 0 2px 4px rgba(0,0,0,0.02); position: relative;
+            background: var(--white); 
+            min-height: 80px; 
+            border-radius: 6px; 
+            padding: 4px; 
+            cursor: pointer; 
+            border: 1px solid transparent; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02); 
+            position: relative;
+            overflow: hidden;
         }
-        .day-cell:hover { border-color: var(--accent); transform: translateY(-2px); }
-        .day-number { font-weight: bold; color: var(--primary); font-size: 1.1rem; display: block; margin-bottom: 5px; }
-        .day-today { background-color: #fff8e1; border: 2px solid var(--accent); }
+        .day-cell:hover { border-color: var(--accent); }
+        .day-number { font-weight: bold; color: var(--primary); font-size: 1rem; display: block; margin-bottom: 2px; }
+        .day-today { background-color: #fff8e1; border: 1px solid var(--accent); }
         
         .appt-indicator {
-            background-color: var(--accent); color: white; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            background-color: var(--accent); 
+            color: white; 
+            font-size: 0.65rem; 
+            padding: 1px 4px; 
+            border-radius: 3px; 
+            margin-bottom: 1px; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis;
         }
 
+        /* VISTA GIORNO & LISTA */
         .day-view-container { max-width: 700px; margin: 0 auto; }
         .appt-card {
-            background: var(--white); border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; align-items: center; border-left: 6px solid var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.2s; cursor: pointer; position: relative;
+            background: var(--white); border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; align-items: center; border-left: 5px solid var(--accent); box-shadow: 0 2px 5px rgba(0,0,0,0.03); cursor: pointer;
         }
-        .appt-card:hover { transform: translateX(5px); }
+        .time-box { font-size: 1.2rem; font-weight: 700; color: var(--primary); padding-right: 15px; border-right: 1px solid #eee; margin-right: 15px; min-width: 70px; text-align: center;}
+        .info-box { flex-grow: 1; overflow: hidden; }
+        .client-name { font-weight: bold; font-size: 1rem; color: #333; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+        .service-name { color: var(--accent); font-weight: 600; font-size: 0.85rem; }
+        .details-row { color: #666; font-size: 0.8rem; margin-top: 2px; }
         
-        .time-box { 
-            font-size: 1.3rem; font-weight: 700; color: var(--primary); padding-right: 20px; border-right: 1px solid #eee; margin-right: 20px; min-width: 90px; text-align: center;
-        }
-        .info-box { flex-grow: 1; }
-        .client-name { font-weight: bold; font-size: 1.1rem; color: #333; }
-        .service-name { color: var(--accent); font-weight: 600; font-size: 0.9rem; }
-        .details-row { color: #666; font-size: 0.85rem; margin-top: 3px; }
-        
-        /* Stile Checkbox Multi-selezione */
-        .select-mode-check { transform: scale(1.5); margin-right: 15px; cursor: pointer; }
-        
-        .settings-container { max-width: 800px; margin: 0 auto; background: var(--white); padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        /* IMPOSTAZIONI */
+        .settings-container { max-width: 800px; margin: 0 auto; background: var(--white); padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
         .day-setting-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }
         .day-setting-row:last-child { border-bottom: none; }
-        .holiday-tag { background-color: #dc3545; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; display: inline-flex; align-items: center; margin-right: 5px; margin-bottom: 5px; }
-        .holiday-tag button { background: none; border: none; color: white; margin-left: 8px; font-weight: bold; cursor: pointer; }
-
+        .holiday-tag { background-color: #dc3545; color: white; padding: 4px 10px; border-radius: 15px; font-size: 0.85rem; display: inline-flex; align-items: center; margin-right: 5px; margin-bottom: 5px; }
+        
+        /* FAB */
         .fab-btn {
-            position: fixed; bottom: 30px; right: 30px; background-color: var(--primary); color: var(--accent); width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 35px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); border: 2px solid var(--accent); cursor: pointer; z-index: 1000; transition: transform 0.2s;
+            position: fixed; bottom: 25px; right: 25px; background-color: var(--primary); color: var(--accent); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.25); border: 2px solid var(--accent); cursor: pointer; z-index: 1000;
         }
-        .fab-btn:hover { transform: scale(1.1) rotate(90deg); background-color: #332822; }
 
         .btn-view-toggle.active { background-color: var(--primary); color: white !important; }
-        .obbligatorio { color: #dc3545; }
         .loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:2000; display:flex; justify-content:center; align-items:center; }
+
+        /* --- MOBILE OPTIMIZATION --- */
+        @media (max-width: 768px) {
+            .admin-header {
+                flex-direction: column;
+                gap: 10px;
+                padding: 15px;
+            }
+            .nav-controls {
+                width: 100%;
+                justify-content: space-between;
+                order: 2; /* Sposta i controlli sotto */
+            }
+            .btn-group {
+                width: 100%;
+                order: 3;
+            }
+            .btn-view-toggle { flex: 1; } /* Bottoni larghezza piena */
+            
+            .brand-title { width: 100%; text-align: center; order: 1; margin-bottom: 5px; }
+
+            /* Calendario Mobile */
+            .day-cell { min-height: 60px; padding: 2px; }
+            .day-number { font-size: 0.9rem; }
+            .appt-indicator { font-size: 0.6rem; padding: 1px 2px; }
+
+            /* Impostazioni Mobile */
+            .day-setting-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .day-setting-row > div { width: 100%; }
+            .d-flex.gap-2.align-items-center { 
+                justify-content: space-between; 
+            }
+            .input-group-text { font-size: 0.85rem; padding: 0.3rem 0.6rem; }
+        }
     </style>
 </head>
 <body>
 
 <div class="admin-header">
-    <div style="font-weight: bold; color: var(--primary); font-size: 1.2rem;">Estro Admin</div>
+    <div class="brand-title">Estro Admin</div>
     
     <div class="nav-controls">
-        <button class="btn btn-sm btn-outline-secondary me-2" onclick="vaiOggi()">Oggi</button> <!-- NUOVO TASTO OGGI -->
-        <button class="btn-nav" onclick="naviga(-1)"><i class="bi bi-chevron-left"></i></button>
-        <div class="date-display" id="dateDisplay">Caricamento...</div>
-        <button class="btn-nav" onclick="naviga(1)"><i class="bi bi-chevron-right"></i></button>
+        <button class="btn btn-sm btn-outline-secondary" onclick="vaiOggi()">Oggi</button>
+        <div class="d-flex align-items-center">
+            <button class="btn-nav" onclick="naviga(-1)"><i class="bi bi-chevron-left"></i></button>
+            <div class="date-display" id="dateDisplay">...</div>
+            <button class="btn-nav" onclick="naviga(1)"><i class="bi bi-chevron-right"></i></button>
+        </div>
     </div>
 
     <div class="btn-group" role="group">
@@ -107,10 +173,9 @@
     <div id="month-view" class="calendar-grid"></div>
 
     <div id="day-view" class="day-view-container" style="display: none;">
-        <!-- Pulsante cancellazione multipla (invisibile di default) -->
         <div id="bulk-actions" class="d-none mb-3 text-end">
-            <button class="btn btn-danger" onclick="eliminaSelezionati()">
-                <i class="bi bi-trash"></i> Elimina Selezionati (<span id="count-selected">0</span>)
+            <button class="btn btn-danger btn-sm" onclick="eliminaSelezionati()">
+                <i class="bi bi-trash"></i> Elimina (<span id="count-selected">0</span>)
             </button>
         </div>
         <div id="day-list"></div>
@@ -118,54 +183,68 @@
 
     <div id="settings-view" class="container" style="display: none;">
         <div class="settings-container">
-            <h4 class="mb-4 text-center" style="color: var(--primary);"><i class="bi bi-clock"></i> Orari di Apertura</h4>
+            <h5 class="mb-3 text-center text-primary fw-bold">Orari Settimanali</h5>
             <div id="weekly-hours-list"></div>
+            
             <hr class="my-4">
-            <h4 class="mb-3 text-center" style="color: var(--primary);"><i class="bi bi-calendar-x"></i> Ferie & Chiusure</h4>
-            <div class="alert alert-info">
-                <i class="bi bi-info-circle"></i> Seleziona solo "Dal" per bloccare un giorno. Seleziona entrambi per un periodo.
+            
+            <h5 class="mb-3 text-center text-primary fw-bold">Ferie & Chiusure</h5>
+            <div class="alert alert-light border small p-2 mb-2">
+                <i class="bi bi-info-circle"></i> Usa "Dal" per un giorno solo.
             </div>
             <div class="input-group mb-3">
                 <span class="input-group-text">Dal</span>
                 <input type="date" id="holiday-input" class="form-control">
+            </div>
+            <div class="input-group mb-3">
                 <span class="input-group-text">Al</span>
                 <input type="date" id="holiday-end-input" class="form-control">
-                <button class="btn btn-danger" onclick="addHoliday()">Blocca Periodo</button>
+                <button class="btn btn-danger" onclick="addHoliday()">Blocca</button>
             </div>
+            
             <div id="holidays-list" class="mb-3 d-flex flex-wrap gap-2"></div>
-            <div class="d-grid gap-2 mt-4">
-                <button class="btn btn-success btn-lg" onclick="salvaImpostazioni()"><i class="bi bi-save"></i> SALVA MODIFICHE</button>
+            
+            <div class="d-grid mt-4">
+                <button class="btn btn-success py-2 fw-bold" onclick="salvaImpostazioni()">SALVA MODIFICHE</button>
             </div>
         </div>
     </div>
 </div>
 
-<button class="fab-btn" id="fab-add" onclick="apriNuovo()" title="Nuovo Appuntamento">+</button>
+<button class="fab-btn" id="fab-add" onclick="apriNuovo()" title="Nuovo">+</button>
 
+<!-- Loader -->
 <div id="loader" class="loading-overlay" style="display:none;">
     <div class="spinner-border text-warning" role="status"></div>
 </div>
 
+<!-- Modal Appuntamento -->
 <div class="modal fade" id="apptModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalTitle">Gestione Appuntamento</h5>
+            <div class="modal-header py-2">
+                <h5 class="modal-title fs-6">Dettagli Appuntamento</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="appt-id">
-                <div class="mb-3">
-                    <label class="form-label">Cliente <span class="obbligatorio">*</span></label>
-                    <input type="text" id="appt-cliente" class="form-control" placeholder="Nome Cognome">
+                <div class="mb-2">
+                    <label class="form-label small fw-bold">Cliente <span class="text-danger">*</span></label>
+                    <input type="text" id="appt-cliente" class="form-control" placeholder="Nome">
                 </div>
-                <div class="row mb-3">
-                    <div class="col">
-                        <label class="form-label">Telefono <span class="obbligatorio">*</span></label>
-                        <input type="text" id="appt-telefono" class="form-control">
+                <div class="row mb-2">
+                    <div class="col-6">
+                        <label class="form-label small fw-bold">Telefono</label>
+                        <input type="tel" id="appt-telefono" class="form-control">
                     </div>
-                    <div class="col">
-                        <label class="form-label">Servizio <span class="obbligatorio">*</span></label>
+                    <div class="col-6">
+                        <label class="form-label small fw-bold">Data</label>
+                        <input type="date" id="appt-data" class="form-control">
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-8">
+                        <label class="form-label small fw-bold">Servizio</label>
                         <select id="appt-servizio" class="form-select">
                             <option>Taglio Donna</option>
                             <option>Piega e Stile</option>
@@ -174,28 +253,19 @@
                             <option>Trattamento Speciale</option>
                         </select>
                     </div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col">
-                        <label class="form-label">Data <span class="obbligatorio">*</span></label>
-                        <input type="date" id="appt-data" class="form-control">
-                    </div>
-                    <div class="col">
-                        <label class="form-label">Ora <span class="obbligatorio">*</span></label>
+                    <div class="col-4">
+                        <label class="form-label small fw-bold">Ora</label>
                         <input type="text" id="appt-ora" class="form-control" placeholder="09:00">
                     </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Note</label>
+                <div class="mb-2">
+                    <label class="form-label small fw-bold">Note</label>
                     <textarea id="appt-note" class="form-control" rows="2"></textarea>
                 </div>
             </div>
-            <div class="modal-footer d-flex justify-content-between">
-                <button type="button" class="btn btn-outline-danger" id="btn-delete" style="display:none;" onclick="eliminaCorrente()">🗑️ Elimina</button>
-                <div>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                    <button type="button" class="btn btn-primary" onclick="salvaAppuntamento()">Salva</button>
-                </div>
+            <div class="modal-footer py-2 justify-content-between">
+                <button type="button" class="btn btn-outline-danger btn-sm" id="btn-delete" style="display:none;" onclick="eliminaCorrente()">Elimina</button>
+                <button type="button" class="btn btn-primary btn-sm px-4" onclick="salvaAppuntamento()">Salva</button>
             </div>
         </div>
     </div>
@@ -206,10 +276,8 @@
 <script>
     const PRODUCTION_HOST = 'booking-app-tmr4.onrender.com';
     let BASE_URL = '';
-    
     if (!window.location.hostname.includes('onrender.com')) {
         BASE_URL = 'https://' + PRODUCTION_HOST;
-        console.log("🛠️ Modalità Locale attivata. Backend:", BASE_URL);
     }
 
     let currentDate = new Date();
@@ -219,12 +287,12 @@
     let siteSettings = {
         weekly: {
             "Monday": { open: false, start: "09:00", end: "19:00" },
-            "Tuesday": { open: true, start: "09:00", end: "19:00" },
-            "Wednesday": { open: true, start: "09:00", end: "19:00" },
-            "Thursday": { open: true, start: "09:00", end: "19:00" },
-            "Friday": { open: true, start: "09:00", end: "19:00" },
-            "Saturday": { open: true, start: "09:00", end: "18:00" },
-            "Sunday": { open: false, start: "09:00", end: "13:00" }
+            "Tuesday": { open: true, start: "09:00", "end": "19:00" },
+            "Wednesday": { open: true, start: "09:00", "end": "19:00" },
+            "Thursday": { open: true, start: "09:00", "end": "19:00" },
+            "Friday": { open: true, start: "09:00", "end": "19:00" },
+            "Saturday": { open: true, start: "09:00", "end": "18:00" },
+            "Sunday": { open: false, start: "09:00", "end": "13:00" }
         },
         holidays: []
     };
@@ -242,17 +310,10 @@
         mostraLoader(true);
         try {
             const res = await fetch(BASE_URL + '/lista_appuntamenti');
-            if (!res.ok) throw new Error("Errore Server: " + res.status);
-            appointments = await res.json();
+            if (res.ok) appointments = await res.json();
             render();
-        } catch (error) {
-            console.error(error);
-            if(appointments.length === 0) {
-                 document.getElementById('dateDisplay').textContent = "Estro Saloon";
-            }
-        } finally {
-            mostraLoader(false);
-        }
+        } catch (error) { console.error(error); } 
+        finally { mostraLoader(false); }
     }
 
     async function scaricaImpostazioni() {
@@ -262,68 +323,50 @@
                 siteSettings = await res.json();
                 renderSettings();
             }
-        } catch (e) {
-            console.error("Errore caricamento settings:", e);
-        }
+        } catch (e) { console.error(e); }
     }
 
     function render() {
         aggiornaHeader();
         
-        const monthDiv = document.getElementById('month-view');
-        const dayDiv = document.getElementById('day-view');
-        const settingsDiv = document.getElementById('settings-view');
-        const fabBtn = document.getElementById('fab-add');
-        const btnMonth = document.getElementById('btn-month');
-        const btnDay = document.getElementById('btn-day');
-        const btnSettings = document.getElementById('btn-settings');
-
-        btnMonth.classList.remove('active');
-        btnDay.classList.remove('active');
-        btnSettings.classList.remove('active');
+        document.getElementById('month-view').style.display = 'none';
+        document.getElementById('day-view').style.display = 'none';
+        document.getElementById('settings-view').style.display = 'none';
+        document.getElementById('fab-add').style.display = 'flex';
         
-        monthDiv.style.display = 'none';
-        dayDiv.style.display = 'none';
-        settingsDiv.style.display = 'none';
-        fabBtn.style.display = 'flex';
+        document.querySelectorAll('.btn-view-toggle').forEach(b => b.classList.remove('active'));
 
         if (currentView === 'mese') {
-            monthDiv.style.display = 'grid';
-            btnMonth.classList.add('active');
+            document.getElementById('month-view').style.display = 'grid';
+            document.getElementById('btn-month').classList.add('active');
             disegnaMese();
         } else if (currentView === 'giorno') {
-            dayDiv.style.display = 'block';
-            btnDay.classList.add('active');
+            document.getElementById('day-view').style.display = 'block';
+            document.getElementById('btn-day').classList.add('active');
             disegnaGiorno();
         } else if (currentView === 'impostazioni') {
-            settingsDiv.style.display = 'block';
-            btnSettings.classList.add('active');
-            fabBtn.style.display = 'none'; 
+            document.getElementById('settings-view').style.display = 'block';
+            document.getElementById('btn-settings').classList.add('active');
+            document.getElementById('fab-add').style.display = 'none'; 
             document.getElementById('dateDisplay').textContent = "Configurazione";
         }
     }
 
     function aggiornaHeader() {
         if (currentView === 'impostazioni') return;
-
-        const display = document.getElementById('dateDisplay');
         const options = currentView === 'mese' 
             ? { month: 'long', year: 'numeric' } 
-            : { weekday: 'long', day: 'numeric', month: 'long' };
-        
-        display.textContent = currentDate.toLocaleDateString('it-IT', options);
+            : { weekday: 'short', day: 'numeric', month: 'short' }; // Accorciato per mobile
+        document.getElementById('dateDisplay').textContent = currentDate.toLocaleDateString('it-IT', options);
     }
 
-    // --- FUNZIONE PER TORNARE A OGGI ---
     function vaiOggi() {
         currentDate = new Date();
         render();
     }
 
-    // --- NAVIGAZIONE CORRETTA (FIX FEBBRAIO) ---
     function naviga(dir) {
         if (currentView === 'mese') {
-            // FIX: Imposta giorno a 1 prima di cambiare mese per evitare overflow (es. 30 Gen -> 30 Feb -> 2 Mar)
             currentDate.setDate(1); 
             currentDate.setMonth(currentDate.getMonth() + dir);
         } else {
@@ -347,26 +390,33 @@
         grid.innerHTML = '';
         const days = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
         days.forEach(d => grid.innerHTML += `<div class="week-day">${d}</div>`);
+        
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
         const firstDay = new Date(year, month, 1);
         const lastDay = new Date(year, month + 1, 0);
         let startCol = firstDay.getDay(); 
         if (startCol === 0) startCol = 7;
+        
         for(let i=1; i<startCol; i++) grid.innerHTML += `<div></div>`;
+        
         for(let day=1; day<=lastDay.getDate(); day++) {
             const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
             const isToday = (new Date().toISOString().split('T')[0] === dateStr);
             const appsToday = appointments.filter(a => a.data === dateStr);
+            
             let dots = '';
-            appsToday.slice(0, 3).forEach(a => { dots += `<div class="appt-indicator">${a.ora} ${a.cliente}</div>`; });
-            if(appsToday.length > 3) dots += `<div class="appt-indicator" style="background:#888">+${appsToday.length-3} altri</div>`;
+            appsToday.slice(0, 3).forEach(a => { dots += `<div class="appt-indicator">${a.ora}</div>`; }); // Solo ora su mobile per spazio
+            if(appsToday.length > 3) dots += `<div class="appt-indicator" style="background:#888">+${appsToday.length-3}</div>`;
+            
             let isHoliday = siteSettings.holidays.includes(dateStr);
-            let holidayStyle = isHoliday ? 'background-color: #ffebee;' : '';
+            let bgClass = isHoliday ? 'background-color: #ffebee;' : '';
+            
             const cell = document.createElement('div');
             cell.className = `day-cell ${isToday ? 'day-today' : ''}`;
-            if(isHoliday) cell.style.cssText = holidayStyle;
-            cell.innerHTML = `<span class="day-number" ${isHoliday ? 'style="color:#dc3545"' : ''}>${day} ${isHoliday ? '🚫' : ''}</span>${dots}`;
+            if(isHoliday) cell.style.cssText = bgClass;
+            
+            cell.innerHTML = `<span class="day-number" ${isHoliday ? 'style="color:#dc3545"' : ''}>${day}</span>${dots}`;
             cell.onclick = () => vaiAlGiorno(dateStr);
             grid.appendChild(cell);
         }
@@ -376,75 +426,50 @@
         const container = document.getElementById('day-list');
         const bulkDiv = document.getElementById('bulk-actions');
         container.innerHTML = '';
-        
-        // Reset checkbox counter
         bulkDiv.classList.add('d-none');
         document.getElementById('count-selected').textContent = '0';
 
         const dateStr = currentDate.toISOString().split('T')[0];
         
         if (siteSettings.holidays.includes(dateStr)) {
-            container.innerHTML = `
-                <div class="alert alert-danger text-center m-4">
-                    <h4><i class="bi bi-shop"></i> Giorno di Chiusura</h4>
-                    <p>Hai impostato questa data come ferie o chiusura straordinaria.</p>
-                </div>`;
+            container.innerHTML = `<div class="alert alert-danger text-center small"><i class="bi bi-shop"></i> Giorno di Chiusura</div>`;
         }
 
-        const appsToday = appointments
-            .filter(a => a.data === dateStr)
-            .sort((a,b) => a.ora.localeCompare(b.ora));
+        const appsToday = appointments.filter(a => a.data === dateStr).sort((a,b) => a.ora.localeCompare(b.ora));
 
-        if(appsToday.length === 0) {
-            if (!siteSettings.holidays.includes(dateStr)) {
-                container.innerHTML = `
-                    <div class="text-center mt-5 text-muted">
-                        <h3>☕ Nessun appuntamento</h3>
-                        <p>Goditi la pausa o inserisci una prenotazione col tasto +</p>
-                    </div>`;
-            }
+        if(appsToday.length === 0 && !siteSettings.holidays.includes(dateStr)) {
+            container.innerHTML = `<div class="text-center mt-5 text-muted small"><p>Nessun appuntamento.</p></div>`;
             return;
         }
 
         appsToday.forEach(a => {
             container.innerHTML += `
             <div class="appt-card" onclick="apriModifica(${a.id})">
-                <!-- Checkbox per cancellazione multipla -->
-                <div onclick="event.stopPropagation()">
-                    <input type="checkbox" class="form-check-input select-mode-check" value="${a.id}" onchange="aggiornaBulk()">
+                <div class="pe-2" onclick="event.stopPropagation()">
+                    <input type="checkbox" class="form-check-input select-mode-check" style="transform:scale(1.3)" value="${a.id}" onchange="aggiornaBulk()">
                 </div>
-
                 <div class="time-box">${a.ora}</div>
                 <div class="info-box">
                     <div class="client-name">${a.cliente}</div>
                     <div class="service-name">${a.servizio}</div>
-                    <div class="details-row">📞 ${a.telefono || 'N/D'} ${a.note ? ' | 📝 Note presenti' : ''}</div>
+                    <div class="details-row"><i class="bi bi-telephone"></i> ${a.telefono || '-'}</div>
                 </div>
                 <div><i class="bi bi-chevron-right text-muted"></i></div>
             </div>`;
         });
     }
 
-    // --- NUOVA LOGICA CANCELLAZIONE MULTIPLA ---
     function aggiornaBulk() {
         const checked = document.querySelectorAll('.select-mode-check:checked');
         const bulkDiv = document.getElementById('bulk-actions');
         document.getElementById('count-selected').textContent = checked.length;
-        
-        if (checked.length > 0) {
-            bulkDiv.classList.remove('d-none');
-        } else {
-            bulkDiv.classList.add('d-none');
-        }
+        checked.length > 0 ? bulkDiv.classList.remove('d-none') : bulkDiv.classList.add('d-none');
     }
 
     async function eliminaSelezionati() {
         const checked = document.querySelectorAll('.select-mode-check:checked');
         const ids = Array.from(checked).map(c => parseInt(c.value));
-        
-        if (ids.length === 0) return;
-        
-        if (!confirm(`Vuoi davvero cancellare ${ids.length} appuntamenti?`)) return;
+        if (ids.length === 0 || !confirm(`Cancellare ${ids.length} elementi?`)) return;
 
         mostraLoader(true);
         try {
@@ -453,18 +478,9 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ids: ids })
             });
-            
-            if (res.ok) {
-                await scaricaDati();
-            } else {
-                alert("Errore durante la cancellazione multipla");
-            }
-        } catch (e) {
-            console.error(e);
-            alert("Errore di rete");
-        } finally {
-            mostraLoader(false);
-        }
+            if (res.ok) await scaricaDati();
+        } catch (e) { alert("Errore"); } 
+        finally { mostraLoader(false); }
     }
 
     function renderSettings() {
@@ -477,11 +493,11 @@
             const config = siteSettings.weekly[dayEng];
             list.innerHTML += `
                 <div class="day-setting-row">
-                    <div class="form-check form-switch" style="min-width: 120px;">
+                    <div class="form-check form-switch mb-2 mb-md-0">
                         <input class="form-check-input" type="checkbox" id="open-${dayEng}" ${config.open ? 'checked' : ''} onchange="toggleDay('${dayEng}')">
                         <label class="form-check-label fw-bold">${dayIta}</label>
                     </div>
-                    <div class="d-flex gap-2 align-items-center">
+                    <div class="d-flex gap-2 align-items-center w-100 w-md-auto">
                         <input type="time" id="start-${dayEng}" value="${config.start}" class="form-control form-control-sm" ${!config.open ? 'disabled' : ''}>
                         <span>-</span>
                         <input type="time" id="end-${dayEng}" value="${config.end}" class="form-control form-control-sm" ${!config.open ? 'disabled' : ''}>
@@ -499,30 +515,24 @@
     }
 
     function addHoliday() {
-        const startInput = document.getElementById('holiday-input');
-        const endInput = document.getElementById('holiday-end-input');
-        const startVal = startInput.value;
-        const endVal = endInput.value;
-        if (!startVal) {
-            alert("Inserisci almeno la data di inizio!");
-            return;
-        }
-        if (!endVal) {
-            if (!siteSettings.holidays.includes(startVal)) siteSettings.holidays.push(startVal);
-        } else {
-            let current = new Date(startVal);
-            const end = new Date(endVal);
-            if (current > end) { alert("La data di fine non può essere prima di quella di inizio!"); return; }
-            while (current <= end) {
-                const dateStr = current.toISOString().split('T')[0];
-                if (!siteSettings.holidays.includes(dateStr)) siteSettings.holidays.push(dateStr);
-                current.setDate(current.getDate() + 1);
-            }
+        const startVal = document.getElementById('holiday-input').value;
+        const endVal = document.getElementById('holiday-end-input').value;
+        if (!startVal) return alert("Inserisci data inizio!");
+        
+        let current = new Date(startVal);
+        const end = endVal ? new Date(endVal) : new Date(startVal);
+        
+        if (current > end) return alert("Data fine errata");
+
+        while (current <= end) {
+            const dateStr = current.toISOString().split('T')[0];
+            if (!siteSettings.holidays.includes(dateStr)) siteSettings.holidays.push(dateStr);
+            current.setDate(current.getDate() + 1);
         }
         siteSettings.holidays.sort();
         renderHolidaysList();
-        startInput.value = '';
-        endInput.value = '';
+        document.getElementById('holiday-input').value = '';
+        document.getElementById('holiday-end-input').value = '';
     }
 
     function removeHoliday(dateVal) {
@@ -535,19 +545,13 @@
         container.innerHTML = '';
         siteSettings.holidays.forEach(date => {
             const [y, m, d] = date.split('-');
-            const prettyDate = `${d}/${m}/${y}`;
-            container.innerHTML += `
-                <div class="holiday-tag">
-                    ${prettyDate} 
-                    <button onclick="removeHoliday('${date}')">&times;</button>
-                </div>`;
+            container.innerHTML += `<div class="holiday-tag">${d}/${m}/${y} <button onclick="removeHoliday('${date}')">&times;</button></div>`;
         });
     }
 
     async function salvaImpostazioni() {
         daysENG.forEach(dayEng => {
-            const isOpen = document.getElementById(`open-${dayEng}`).checked;
-            siteSettings.weekly[dayEng].open = isOpen;
+            siteSettings.weekly[dayEng].open = document.getElementById(`open-${dayEng}`).checked;
             siteSettings.weekly[dayEng].start = document.getElementById(`start-${dayEng}`).value;
             siteSettings.weekly[dayEng].end = document.getElementById(`end-${dayEng}`).value;
         });
@@ -558,19 +562,11 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(siteSettings)
             });
-            if(!res.ok) throw new Error("Errore Salvataggio");
-            await new Promise(r => setTimeout(r, 500)); 
-            alert("✅ Impostazioni salvate correttamente sul server!");
-            cambiaVista('mese');
-        } catch (e) {
-            alert("Errore salvataggio: " + e.message);
-        } finally {
-            mostraLoader(false);
-        }
+            if(res.ok) { alert("Salvato!"); cambiaVista('mese'); }
+        } catch (e) { alert("Errore"); } finally { mostraLoader(false); }
     }
 
     function apriNuovo() {
-        document.getElementById('modalTitle').textContent = "Nuova Prenotazione";
         document.getElementById('appt-id').value = ""; 
         document.getElementById('btn-delete').style.display = 'none';
         document.getElementById('appt-cliente').value = "";
@@ -583,7 +579,6 @@
     function apriModifica(id) {
         const app = appointments.find(a => a.id === id);
         if(!app) return;
-        document.getElementById('modalTitle').textContent = "Modifica Prenotazione";
         document.getElementById('appt-id').value = app.id;
         document.getElementById('btn-delete').style.display = 'block';
         document.getElementById('appt-cliente').value = app.cliente;
@@ -596,7 +591,6 @@
     }
 
     async function salvaAppuntamento() {
-        mostraLoader(true);
         const id = document.getElementById('appt-id').value;
         const payload = {
             cliente: document.getElementById('appt-cliente').value,
@@ -606,70 +600,36 @@
             ora: document.getElementById('appt-ora').value,
             note: document.getElementById('appt-note').value
         };
-        if(!payload.cliente || !payload.data || !payload.ora) {
-            mostraLoader(false);
-            alert("Compila tutti i campi obbligatori!");
-            return;
-        }
-        let url, method, body;
-        if (id) {
-            url = `/modifica/${id}`;
-            method = 'PUT';
-            body = JSON.stringify(payload);
-        } else {
-            const params = new URLSearchParams({
-                nome: payload.cliente, 
-                telefono: payload.telefono,
-                servizio: payload.servizio,
-                data: payload.data,
-                ora: payload.ora,
-                note: payload.note
-            });
-            url = `/prenota?${params.toString()}`;
-            method = 'POST';
-            body = null;
-        }
+        if(!payload.cliente || !payload.data || !payload.ora) return alert("Compila i campi obbligatori");
+
+        mostraLoader(true);
+        let url = id ? `/modifica/${id}` : `/prenota?${new URLSearchParams({nome: payload.cliente, telefono: payload.telefono, servizio: payload.servizio, data: payload.data, ora: payload.ora, note: payload.note}).toString()}`;
+        let method = id ? 'PUT' : 'POST';
+        let body = id ? JSON.stringify(payload) : null;
+
         try {
-            const options = { method: method };
-            if (method === 'PUT') {
-                options.headers = { 'Content-Type': 'application/json' };
-                options.body = body;
-            }
-            const res = await fetch(BASE_URL + url, options);
-            if (res.ok) {
-                modal.hide();
-                await scaricaDati(); 
-            } else {
-                const err = await res.json();
-                alert("Errore: " + err.detail);
-            }
-        } catch (e) {
-            console.error(e);
-            alert("Errore di comunicazione col server.");
-        } finally {
-            mostraLoader(false);
-        }
+            const res = await fetch(BASE_URL + url, { 
+                method: method, 
+                headers: id ? { 'Content-Type': 'application/json' } : {}, 
+                body: body 
+            });
+            if (res.ok) { modal.hide(); await scaricaDati(); } 
+            else { const err = await res.json(); alert("Errore: " + err.detail); }
+        } catch (e) { alert("Errore di rete"); } finally { mostraLoader(false); }
     }
 
     async function eliminaCorrente() {
         const id = document.getElementById('appt-id').value;
-        if(confirm("Vuoi davvero cancellare questo appuntamento?")) {
+        if(confirm("Cancellare?")) {
             mostraLoader(true);
             try {
                 await fetch(BASE_URL + `/cancella/${id}`, { method: 'DELETE' });
-                modal.hide();
-                await scaricaDati();
-            } catch (e) {
-                alert("Errore durante la cancellazione");
-            } finally {
-                mostraLoader(false);
-            }
+                modal.hide(); await scaricaDati();
+            } catch (e) { alert("Errore"); } finally { mostraLoader(false); }
         }
     }
 
-    function mostraLoader(show) {
-        document.getElementById('loader').style.display = show ? 'flex' : 'none';
-    }
+    function mostraLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
 </script>
 </body>
 </html>

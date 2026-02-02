@@ -2,112 +2,270 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Gestionale Estro Saloon</title>
+    <title>Admin - Barbershop 41</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     
     <!-- Bootstrap CSS & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- Font Urban: Oswald e Roboto -->
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --primary: #4a3b32; 
-            --accent: #b08d55;
-            --bg: #f4efe9;
-            --white: #ffffff;
+            /* PALETTE DARK MODE */
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --header-bg: #000000;
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+            --accent: #ffd700;       /* Oro */
+            --accent-hover: #e6c200;
+            --border-color: #333;
+            --input-bg: #2d2d2d;
+            --danger: #ff4444;
         }
 
         body { 
-            background-color: var(--bg); 
-            font-family: 'Lato', sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-main);
+            font-family: 'Roboto', sans-serif; 
             height: 100vh; 
             display: flex; 
             flex-direction: column; 
             overflow: hidden; 
         }
         
-        /* HEADER FISSO */
+        /* HEADER */
         .admin-header {
-            background-color: var(--white);
-            padding: 10px 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            background-color: var(--header-bg);
+            padding: 15px 20px;
+            border-bottom: 2px solid var(--accent);
             display: flex;
             justify-content: space-between;
             align-items: center;
             z-index: 100;
-            flex-wrap: wrap; /* Permette a capo su mobile */
+            flex-wrap: wrap;
             gap: 10px;
         }
         
         .brand-title {
-            font-weight: bold; 
-            color: var(--primary); 
-            font-size: 1.2rem;
+            font-family: 'Oswald', sans-serif;
+            font-weight: 700; 
+            color: var(--text-main); 
+            font-size: 1.4rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
+        .brand-title span { color: var(--accent); }
 
         .nav-controls { display: flex; align-items: center; gap: 10px; }
-        .date-display { font-size: 1.2rem; font-weight: bold; color: var(--primary); min-width: 150px; text-align: center; text-transform: capitalize;}
-        .btn-nav { border: none; background: none; font-size: 1.5rem; color: var(--accent); cursor: pointer; padding: 0 10px;}
         
+        .date-display { 
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.3rem; 
+            font-weight: 500; 
+            color: var(--accent); 
+            min-width: 160px; 
+            text-align: center; 
+            text-transform: uppercase;
+        }
+        
+        .btn-nav { border: none; background: none; font-size: 1.5rem; color: var(--text-main); cursor: pointer; padding: 0 10px; transition: color 0.2s; }
+        .btn-nav:hover { color: var(--accent); }
+        
+        /* BOTTONI DARK */
+        .btn-outline-dark {
+            color: var(--text-main);
+            border-color: var(--border-color);
+            font-family: 'Oswald', sans-serif;
+            letter-spacing: 1px;
+        }
+        .btn-outline-dark:hover {
+            background-color: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+        }
+        .btn-view-toggle.active { 
+            background-color: var(--accent) !important; 
+            color: #000 !important; 
+            border-color: var(--accent) !important;
+            font-weight: bold;
+        }
+
         /* AREA CONTENUTO */
-        .content-area { flex-grow: 1; overflow-y: auto; padding: 10px; padding-bottom: 80px; }
+        .content-area { flex-grow: 1; overflow-y: auto; padding: 15px; padding-bottom: 90px; }
 
         /* CALENDARIO */
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; max-width: 1000px; margin: 0 auto; }
-        .week-day { text-align: center; font-weight: bold; color: #888; padding: 5px; text-transform: uppercase; font-size: 0.75rem; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; max-width: 1000px; margin: 0 auto; }
+        .week-day { text-align: center; font-weight: bold; color: var(--text-muted); padding: 5px; text-transform: uppercase; font-size: 0.8rem; font-family: 'Oswald', sans-serif; }
         
         .day-cell {
-            background: var(--white); 
-            min-height: 80px; 
-            border-radius: 6px; 
-            padding: 4px; 
+            background: var(--panel-bg); 
+            min-height: 90px; 
+            border-radius: 4px; 
+            padding: 5px; 
             cursor: pointer; 
-            border: 1px solid transparent; 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02); 
+            border: 1px solid var(--border-color); 
             position: relative;
             overflow: hidden;
+            transition: all 0.2s;
         }
-        .day-cell:hover { border-color: var(--accent); }
-        .day-number { font-weight: bold; color: var(--primary); font-size: 1rem; display: block; margin-bottom: 2px; }
-        .day-today { background-color: #fff8e1; border: 1px solid var(--accent); }
+        .day-cell:hover { border-color: var(--accent); background-color: #252525; }
+        
+        .day-number { 
+            font-weight: bold; 
+            color: var(--text-main); 
+            font-size: 1.1rem; 
+            display: block; 
+            margin-bottom: 4px; 
+            font-family: 'Oswald', sans-serif;
+        }
+        .day-today { 
+            background-color: rgba(255, 215, 0, 0.05); 
+            border: 1px solid var(--accent); 
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.1) inset;
+        }
         
         .appt-indicator {
             background-color: var(--accent); 
-            color: white; 
-            font-size: 0.65rem; 
-            padding: 1px 4px; 
-            border-radius: 3px; 
-            margin-bottom: 1px; 
+            color: #000; 
+            font-size: 0.7rem; 
+            padding: 2px 5px; 
+            border-radius: 2px; 
+            margin-bottom: 2px; 
             white-space: nowrap; 
             overflow: hidden; 
             text-overflow: ellipsis;
+            font-weight: 600;
         }
 
         /* VISTA GIORNO & LISTA */
         .day-view-container { max-width: 700px; margin: 0 auto; }
         .appt-card {
-            background: var(--white); border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; align-items: center; border-left: 5px solid var(--accent); box-shadow: 0 2px 5px rgba(0,0,0,0.03); cursor: pointer;
+            background: var(--panel-bg); 
+            border-radius: 6px; 
+            padding: 15px; 
+            margin-bottom: 12px; 
+            display: flex; 
+            align-items: center; 
+            border-left: 4px solid var(--accent); 
+            border-bottom: 1px solid #000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3); 
+            cursor: pointer;
         }
-        .time-box { font-size: 1.2rem; font-weight: 700; color: var(--primary); padding-right: 15px; border-right: 1px solid #eee; margin-right: 15px; min-width: 70px; text-align: center;}
+        
+        .time-box { 
+            font-size: 1.4rem; 
+            font-weight: 700; 
+            color: var(--accent); 
+            padding-right: 15px; 
+            border-right: 1px solid var(--border-color); 
+            margin-right: 15px; 
+            min-width: 80px; 
+            text-align: center;
+            font-family: 'Oswald', sans-serif;
+        }
         .info-box { flex-grow: 1; overflow: hidden; }
-        .client-name { font-weight: bold; font-size: 1rem; color: #333; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
-        .service-name { color: var(--accent); font-weight: 600; font-size: 0.85rem; }
-        .details-row { color: #666; font-size: 0.8rem; margin-top: 2px; }
+        .client-name { font-weight: bold; font-size: 1.1rem; color: var(--text-main); text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+        .service-name { color: var(--text-muted); font-weight: 500; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .details-row { color: #666; font-size: 0.85rem; margin-top: 4px; }
         
-        /* IMPOSTAZIONI */
-        .settings-container { max-width: 800px; margin: 0 auto; background: var(--white); padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
-        .day-setting-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }
-        .day-setting-row:last-child { border-bottom: none; }
-        .holiday-tag { background-color: #dc3545; color: white; padding: 4px 10px; border-radius: 15px; font-size: 0.85rem; display: inline-flex; align-items: center; margin-right: 5px; margin-bottom: 5px; }
-        
-        /* FAB */
-        .fab-btn {
-            position: fixed; bottom: 25px; right: 25px; background-color: var(--primary); color: var(--accent); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.25); border: 2px solid var(--accent); cursor: pointer; z-index: 1000;
+        /* Checkbox Custom */
+        .select-mode-check {
+            accent-color: var(--accent);
+            transform: scale(1.3);
+            margin-right: 15px;
+            cursor: pointer;
         }
 
-        .btn-view-toggle.active { background-color: var(--primary); color: white !important; }
-        .loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:2000; display:flex; justify-content:center; align-items:center; }
+        /* IMPOSTAZIONI */
+        .settings-container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: var(--panel-bg); 
+            padding: 25px; 
+            border-radius: 8px; 
+            border: 1px solid var(--border-color);
+        }
+        
+        .section-title {
+            color: var(--accent);
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .day-setting-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
+        .day-setting-row:last-child { border-bottom: none; }
+        
+        .form-check-input:checked {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .holiday-tag { 
+            background-color: var(--danger); 
+            color: white; 
+            padding: 5px 12px; 
+            border-radius: 4px; 
+            font-size: 0.9rem; 
+            display: inline-flex; 
+            align-items: center; 
+            margin-right: 5px; 
+            margin-bottom: 5px; 
+            font-weight: bold;
+        }
+        
+        /* INPUT & FORM */
+        .form-control, .form-select {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            border-radius: 4px;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #333;
+            border-color: var(--accent);
+            color: var(--text-main);
+            box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
+        }
+        .input-group-text {
+            background-color: #000;
+            color: var(--text-muted);
+            border-color: var(--border-color);
+        }
+
+        /* MODAL */
+        .modal-content {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+        .modal-header { border-bottom: 1px solid var(--border-color); }
+        .modal-footer { border-top: 1px solid var(--border-color); }
+        .btn-close { filter: invert(1); }
+
+        /* FAB */
+        .fab-btn {
+            position: fixed; bottom: 25px; right: 25px; 
+            background-color: var(--accent); 
+            color: #000; 
+            width: 60px; height: 60px; 
+            border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 30px; 
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); 
+            border: none; 
+            cursor: pointer; 
+            z-index: 1000;
+            transition: transform 0.2s;
+        }
+        .fab-btn:hover { transform: scale(1.1); background-color: var(--accent-hover); }
+
+        .loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:2000; display:flex; justify-content:center; align-items:center; }
 
         /* --- MOBILE OPTIMIZATION --- */
         @media (max-width: 768px) {
@@ -119,22 +277,20 @@
             .nav-controls {
                 width: 100%;
                 justify-content: space-between;
-                order: 2; /* Sposta i controlli sotto */
+                order: 2;
             }
             .btn-group {
                 width: 100%;
                 order: 3;
             }
-            .btn-view-toggle { flex: 1; } /* Bottoni larghezza piena */
+            .btn-view-toggle { flex: 1; }
             
             .brand-title { width: 100%; text-align: center; order: 1; margin-bottom: 5px; }
 
-            /* Calendario Mobile */
-            .day-cell { min-height: 60px; padding: 2px; }
+            .day-cell { min-height: 70px; padding: 3px; }
             .day-number { font-size: 0.9rem; }
-            .appt-indicator { font-size: 0.6rem; padding: 1px 2px; }
+            .appt-indicator { font-size: 0.6rem; padding: 1px 3px; }
 
-            /* Impostazioni Mobile */
             .day-setting-row {
                 flex-direction: column;
                 align-items: flex-start;
@@ -144,17 +300,16 @@
             .d-flex.gap-2.align-items-center { 
                 justify-content: space-between; 
             }
-            .input-group-text { font-size: 0.85rem; padding: 0.3rem 0.6rem; }
         }
     </style>
 </head>
 <body>
 
 <div class="admin-header">
-    <div class="brand-title">Estro Admin</div>
+    <div class="brand-title">BARBER<span>SHOP</span> 41 <small style="font-size: 0.8rem; color: #666;">ADMIN</small></div>
     
     <div class="nav-controls">
-        <button class="btn btn-sm btn-outline-secondary" onclick="vaiOggi()">Oggi</button>
+        <button class="btn btn-sm btn-outline-dark" style="border-color: #444; color: #aaa;" onclick="vaiOggi()">Oggi</button>
         <div class="d-flex align-items-center">
             <button class="btn-nav" onclick="naviga(-1)"><i class="bi bi-chevron-left"></i></button>
             <div class="date-display" id="dateDisplay">...</div>
@@ -163,8 +318,8 @@
     </div>
 
     <div class="btn-group" role="group">
-        <button type="button" class="btn btn-outline-dark btn-view-toggle active" id="btn-month" onclick="cambiaVista('mese')">Mese</button>
-        <button type="button" class="btn btn-outline-dark btn-view-toggle" id="btn-day" onclick="cambiaVista('giorno')">Giorno</button>
+        <button type="button" class="btn btn-outline-dark btn-view-toggle active" id="btn-month" onclick="cambiaVista('mese')">MESE</button>
+        <button type="button" class="btn btn-outline-dark btn-view-toggle" id="btn-day" onclick="cambiaVista('giorno')">GIORNO</button>
         <button type="button" class="btn btn-outline-dark btn-view-toggle" id="btn-settings" onclick="cambiaVista('impostazioni')"><i class="bi bi-gear-fill"></i></button>
     </div>
 </div>
@@ -183,13 +338,11 @@
 
     <div id="settings-view" class="container" style="display: none;">
         <div class="settings-container">
-            <h5 class="mb-3 text-center text-primary fw-bold">Orari Settimanali</h5>
+            <div class="section-title"><i class="bi bi-clock"></i> ORARI SETTIMANALI</div>
             <div id="weekly-hours-list"></div>
             
-            <hr class="my-4">
-            
-            <h5 class="mb-3 text-center text-primary fw-bold">Ferie & Chiusure</h5>
-            <div class="alert alert-light border small p-2 mb-2">
+            <div class="section-title mt-4"><i class="bi bi-calendar-x"></i> FERIE & CHIUSURE</div>
+            <div class="alert alert-dark border-secondary small p-2 mb-2 text-muted">
                 <i class="bi bi-info-circle"></i> Usa "Dal" per un giorno solo.
             </div>
             <div class="input-group mb-3">
@@ -199,19 +352,19 @@
             <div class="input-group mb-3">
                 <span class="input-group-text">Al</span>
                 <input type="date" id="holiday-end-input" class="form-control">
-                <button class="btn btn-danger" onclick="addHoliday()">Blocca</button>
+                <button class="btn btn-danger" onclick="addHoliday()">BLOCCA</button>
             </div>
             
             <div id="holidays-list" class="mb-3 d-flex flex-wrap gap-2"></div>
             
             <div class="d-grid mt-4">
-                <button class="btn btn-success py-2 fw-bold" onclick="salvaImpostazioni()">SALVA MODIFICHE</button>
+                <button class="btn btn-success py-2 fw-bold text-black" style="background-color: var(--accent); border:none;" onclick="salvaImpostazioni()">SALVA MODIFICHE</button>
             </div>
         </div>
     </div>
 </div>
 
-<button class="fab-btn" id="fab-add" onclick="apriNuovo()" title="Nuovo">+</button>
+<button class="fab-btn" id="fab-add" onclick="apriNuovo()" title="Nuovo"><i class="bi bi-plus"></i></button>
 
 <!-- Loader -->
 <div id="loader" class="loading-overlay" style="display:none;">
@@ -223,28 +376,28 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header py-2">
-                <h5 class="modal-title fs-6">Dettagli Appuntamento</h5>
+                <h5 class="modal-title fs-6 fw-bold" style="font-family: 'Oswald', sans-serif; letter-spacing: 1px; color: var(--accent);">DETTAGLI APPUNTAMENTO</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="appt-id">
                 <div class="mb-2">
-                    <label class="form-label small fw-bold">Cliente <span class="text-danger">*</span></label>
+                    <label class="form-label small fw-bold text-muted">CLIENTE <span class="text-danger">*</span></label>
                     <input type="text" id="appt-cliente" class="form-control" placeholder="Nome">
                 </div>
                 <div class="row mb-2">
                     <div class="col-6">
-                        <label class="form-label small fw-bold">Telefono</label>
+                        <label class="form-label small fw-bold text-muted">TELEFONO</label>
                         <input type="tel" id="appt-telefono" class="form-control">
                     </div>
                     <div class="col-6">
-                        <label class="form-label small fw-bold">Data</label>
+                        <label class="form-label small fw-bold text-muted">DATA</label>
                         <input type="date" id="appt-data" class="form-control">
                     </div>
                 </div>
                 <div class="row mb-2">
                     <div class="col-8">
-                        <label class="form-label small fw-bold">Servizio</label>
+                        <label class="form-label small fw-bold text-muted">SERVIZIO</label>
                         <select id="appt-servizio" class="form-select">
                             <option>Taglio Donna</option>
                             <option>Piega e Stile</option>
@@ -254,18 +407,18 @@
                         </select>
                     </div>
                     <div class="col-4">
-                        <label class="form-label small fw-bold">Ora</label>
+                        <label class="form-label small fw-bold text-muted">ORA</label>
                         <input type="text" id="appt-ora" class="form-control" placeholder="09:00">
                     </div>
                 </div>
                 <div class="mb-2">
-                    <label class="form-label small fw-bold">Note</label>
+                    <label class="form-label small fw-bold text-muted">NOTE</label>
                     <textarea id="appt-note" class="form-control" rows="2"></textarea>
                 </div>
             </div>
             <div class="modal-footer py-2 justify-content-between">
-                <button type="button" class="btn btn-outline-danger btn-sm" id="btn-delete" style="display:none;" onclick="eliminaCorrente()">Elimina</button>
-                <button type="button" class="btn btn-primary btn-sm px-4" onclick="salvaAppuntamento()">Salva</button>
+                <button type="button" class="btn btn-outline-danger btn-sm" id="btn-delete" style="display:none;" onclick="eliminaCorrente()">ELIMINA</button>
+                <button type="button" class="btn btn-primary btn-sm px-4 fw-bold text-black" style="background-color: var(--accent); border:none;" onclick="salvaAppuntamento()">SALVA</button>
             </div>
         </div>
     </div>
@@ -348,7 +501,7 @@
             document.getElementById('settings-view').style.display = 'block';
             document.getElementById('btn-settings').classList.add('active');
             document.getElementById('fab-add').style.display = 'none'; 
-            document.getElementById('dateDisplay').textContent = "Configurazione";
+            document.getElementById('dateDisplay').textContent = "SETTAGGI";
         }
     }
 
@@ -356,7 +509,7 @@
         if (currentView === 'impostazioni') return;
         const options = currentView === 'mese' 
             ? { month: 'long', year: 'numeric' } 
-            : { weekday: 'short', day: 'numeric', month: 'short' }; // Accorciato per mobile
+            : { weekday: 'short', day: 'numeric', month: 'short' };
         document.getElementById('dateDisplay').textContent = currentDate.toLocaleDateString('it-IT', options);
     }
 
@@ -388,7 +541,7 @@
     function disegnaMese() {
         const grid = document.getElementById('month-view');
         grid.innerHTML = '';
-        const days = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+        const days = ['LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB', 'DOM'];
         days.forEach(d => grid.innerHTML += `<div class="week-day">${d}</div>`);
         
         const year = currentDate.getFullYear();
@@ -406,17 +559,17 @@
             const appsToday = appointments.filter(a => a.data === dateStr);
             
             let dots = '';
-            appsToday.slice(0, 3).forEach(a => { dots += `<div class="appt-indicator">${a.ora}</div>`; }); // Solo ora su mobile per spazio
-            if(appsToday.length > 3) dots += `<div class="appt-indicator" style="background:#888">+${appsToday.length-3}</div>`;
+            appsToday.slice(0, 3).forEach(a => { dots += `<div class="appt-indicator">${a.ora}</div>`; });
+            if(appsToday.length > 3) dots += `<div class="appt-indicator" style="background:#444; color:white">+${appsToday.length-3}</div>`;
             
             let isHoliday = siteSettings.holidays.includes(dateStr);
-            let bgClass = isHoliday ? 'background-color: #ffebee;' : '';
+            let bgClass = isHoliday ? 'background-color: #3d1a1a;' : ''; // Rosso scuro per ferie
             
             const cell = document.createElement('div');
             cell.className = `day-cell ${isToday ? 'day-today' : ''}`;
             if(isHoliday) cell.style.cssText = bgClass;
             
-            cell.innerHTML = `<span class="day-number" ${isHoliday ? 'style="color:#dc3545"' : ''}>${day}</span>${dots}`;
+            cell.innerHTML = `<span class="day-number" ${isHoliday ? 'style="color:#ff6b6b"' : ''}>${day}</span>${dots}`;
             cell.onclick = () => vaiAlGiorno(dateStr);
             grid.appendChild(cell);
         }
@@ -432,13 +585,13 @@
         const dateStr = currentDate.toISOString().split('T')[0];
         
         if (siteSettings.holidays.includes(dateStr)) {
-            container.innerHTML = `<div class="alert alert-danger text-center small"><i class="bi bi-shop"></i> Giorno di Chiusura</div>`;
+            container.innerHTML = `<div class="alert alert-danger text-center small bg-dark border-danger text-danger"><i class="bi bi-shop"></i> CHIUSO PER FERIE</div>`;
         }
 
         const appsToday = appointments.filter(a => a.data === dateStr).sort((a,b) => a.ora.localeCompare(b.ora));
 
         if(appsToday.length === 0 && !siteSettings.holidays.includes(dateStr)) {
-            container.innerHTML = `<div class="text-center mt-5 text-muted small"><p>Nessun appuntamento.</p></div>`;
+            container.innerHTML = `<div class="text-center mt-5 text-muted small"><p>Nessun appuntamento per oggi.</p></div>`;
             return;
         }
 
@@ -446,7 +599,7 @@
             container.innerHTML += `
             <div class="appt-card" onclick="apriModifica(${a.id})">
                 <div class="pe-2" onclick="event.stopPropagation()">
-                    <input type="checkbox" class="form-check-input select-mode-check" style="transform:scale(1.3)" value="${a.id}" onchange="aggiornaBulk()">
+                    <input type="checkbox" class="form-check-input select-mode-check" value="${a.id}" onchange="aggiornaBulk()">
                 </div>
                 <div class="time-box">${a.ora}</div>
                 <div class="info-box">
@@ -495,11 +648,11 @@
                 <div class="day-setting-row">
                     <div class="form-check form-switch mb-2 mb-md-0">
                         <input class="form-check-input" type="checkbox" id="open-${dayEng}" ${config.open ? 'checked' : ''} onchange="toggleDay('${dayEng}')">
-                        <label class="form-check-label fw-bold">${dayIta}</label>
+                        <label class="form-check-label fw-bold text-muted">${dayIta}</label>
                     </div>
                     <div class="d-flex gap-2 align-items-center w-100 w-md-auto">
                         <input type="time" id="start-${dayEng}" value="${config.start}" class="form-control form-control-sm" ${!config.open ? 'disabled' : ''}>
-                        <span>-</span>
+                        <span class="text-muted">-</span>
                         <input type="time" id="end-${dayEng}" value="${config.end}" class="form-control form-control-sm" ${!config.open ? 'disabled' : ''}>
                     </div>
                 </div>

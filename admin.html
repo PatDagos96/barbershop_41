@@ -18,7 +18,7 @@
             --panel-bg: #1e1e1e;
             --header-bg: #000000;
             --text-main: #ffffff;
-            --text-muted: #a0a0a0;
+            --text-muted: #d0d0d0; /* Reso più chiaro per leggibilità */
             --accent: #ffd700;       /* Oro */
             --accent-hover: #e6c200;
             --border-color: #333;
@@ -169,7 +169,7 @@
         .info-box { flex-grow: 1; overflow: hidden; }
         .client-name { font-weight: bold; font-size: 1.1rem; color: var(--text-main); text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
         .service-name { color: var(--text-muted); font-weight: 500; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
-        .details-row { color: #666; font-size: 0.85rem; margin-top: 4px; }
+        .details-row { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; } /* Più chiaro */
         
         /* Checkbox Custom */
         .select-mode-check {
@@ -248,6 +248,19 @@
         .modal-footer { border-top: 1px solid var(--border-color); }
         .btn-close { filter: invert(1); }
 
+        /* Label migliorate per leggibilità */
+        .form-label {
+            color: var(--text-muted) !important;
+            font-weight: 600 !important;
+        }
+        
+        /* Alert info */
+        .alert-info-dark {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
         /* FAB */
         .fab-btn {
             position: fixed; bottom: 25px; right: 25px; 
@@ -306,10 +319,10 @@
 <body>
 
 <div class="admin-header">
-    <div class="brand-title">BARBER<span>SHOP</span> 41 <small style="font-size: 0.8rem; color: #666;">ADMIN</small></div>
+    <div class="brand-title">BARBER<span>SHOP</span> 41 <small style="font-size: 0.8rem; color: #aaa;">ADMIN</small></div>
     
     <div class="nav-controls">
-        <button class="btn btn-sm btn-outline-dark" style="border-color: #444; color: #aaa;" onclick="vaiOggi()">Oggi</button>
+        <button class="btn btn-sm btn-outline-dark" style="border-color: #666; color: #eee;" onclick="vaiOggi()">Oggi</button>
         <div class="d-flex align-items-center">
             <button class="btn-nav" onclick="naviga(-1)"><i class="bi bi-chevron-left"></i></button>
             <div class="date-display" id="dateDisplay">...</div>
@@ -342,7 +355,7 @@
             <div id="weekly-hours-list"></div>
             
             <div class="section-title mt-4"><i class="bi bi-calendar-x"></i> FERIE & CHIUSURE</div>
-            <div class="alert alert-dark border-secondary small p-2 mb-2 text-muted">
+            <div class="alert alert-info-dark small p-2 mb-2">
                 <i class="bi bi-info-circle"></i> Usa "Dal" per un giorno solo.
             </div>
             <div class="input-group mb-3">
@@ -382,22 +395,22 @@
             <div class="modal-body">
                 <input type="hidden" id="appt-id">
                 <div class="mb-2">
-                    <label class="form-label small fw-bold text-muted">CLIENTE <span class="text-danger">*</span></label>
+                    <label class="form-label small">CLIENTE <span class="text-danger">*</span></label>
                     <input type="text" id="appt-cliente" class="form-control" placeholder="Nome">
                 </div>
                 <div class="row mb-2">
                     <div class="col-6">
-                        <label class="form-label small fw-bold text-muted">TELEFONO</label>
+                        <label class="form-label small">TELEFONO</label>
                         <input type="tel" id="appt-telefono" class="form-control">
                     </div>
                     <div class="col-6">
-                        <label class="form-label small fw-bold text-muted">DATA</label>
+                        <label class="form-label small">DATA</label>
                         <input type="date" id="appt-data" class="form-control">
                     </div>
                 </div>
                 <div class="row mb-2">
                     <div class="col-8">
-                        <label class="form-label small fw-bold text-muted">SERVIZIO</label>
+                        <label class="form-label small">SERVIZIO</label>
                         <select id="appt-servizio" class="form-select">
                             <option>Taglio Donna</option>
                             <option>Piega e Stile</option>
@@ -407,12 +420,12 @@
                         </select>
                     </div>
                     <div class="col-4">
-                        <label class="form-label small fw-bold text-muted">ORA</label>
+                        <label class="form-label small">ORA</label>
                         <input type="text" id="appt-ora" class="form-control" placeholder="09:00">
                     </div>
                 </div>
                 <div class="mb-2">
-                    <label class="form-label small fw-bold text-muted">NOTE</label>
+                    <label class="form-label small">NOTE</label>
                     <textarea id="appt-note" class="form-control" rows="2"></textarea>
                 </div>
             </div>

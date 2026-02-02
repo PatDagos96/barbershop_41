@@ -14,20 +14,19 @@
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/10397/10397072.png">
     <!-- FINE PWA SETUP -->
 
-    <!-- FONT: Uso 'Oswald' per i titoli (simile all'insegna) e 'Roboto' per il testo -->
+    <!-- FONT -->
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <style>
         :root {
-            /* PALETTE BARBERSHOP 41 */
-            --bg-color: #121212;       /* Nero opaco sfondo */
-            --card-bg: #1e1e1e;        /* Grigio scuro scheda */
-            --primary-text: #ffffff;   /* Testo bianco */
-            --secondary-text: #b0b0b0; /* Testo grigio chiaro */
-            --accent-color: #ffd700;   /* Oro/Giallo Insegna */
-            --accent-hover: #e6c200;   /* Oro più scuro */
-            --input-bg: #2d2d2d;       /* Sfondo input scuro */
+            --bg-color: #121212;       
+            --card-bg: #1e1e1e;        
+            --primary-text: #ffffff;   
+            --secondary-text: #b0b0b0; 
+            --accent-color: #ffd700;   
+            --accent-hover: #e6c200;   
+            --input-bg: #2d2d2d;       
             --input-border: #444;      
         }
 
@@ -36,36 +35,44 @@
             color: var(--primary-text);
             font-family: 'Roboto', sans-serif;
             display: flex;
+            flex-direction: column; /* Per gestire il footer */
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             margin: 0;
             padding: 20px;
-            /* Sfondo opzionale: pattern geometrico scuro */
             background-image: radial-gradient(#2a2a2a 1px, transparent 1px);
             background-size: 20px 20px;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 500px;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .card {
             background-color: var(--card-bg);
             border: 1px solid #333;
             border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); /* Ombra scura profonda */
-            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); 
             width: 100%;
             overflow: hidden;
         }
 
         /* Testata stile Insegna */
         .card-header-custom {
-            background-color: #000; /* Nero assoluto */
+            background-color: #000;
             padding: 30px 20px;
             text-align: center;
-            border-bottom: 4px solid var(--accent-color); /* Linea gialla sotto */
+            border-bottom: 4px solid var(--accent-color);
         }
 
         h2 {
-            font-family: 'Oswald', sans-serif; /* Font squadrato */
+            font-family: 'Oswald', sans-serif;
             font-weight: 700;
             text-transform: uppercase;
             font-size: 3rem;
@@ -74,8 +81,7 @@
             color: white;
         }
 
-        /* Effetto bicolore nel titolo tramite span */
-        .brand-shop { color: var(--accent-color); } /* Giallo */
+        .brand-shop { color: var(--accent-color); } 
 
         label {
             color: var(--secondary-text);
@@ -88,12 +94,11 @@
 
         .obbligatorio { color: var(--accent-color); margin-left: 3px; }
 
-        /* Input Dark Mode */
         .form-control, .form-select, textarea {
             background-color: var(--input-bg);
             border: 1px solid var(--input-border);
-            color: #fff; /* Testo bianco mentre scrivi */
-            border-radius: 4px; /* Angoli meno arrotondati, più spigolosi */
+            color: #fff; 
+            border-radius: 4px; 
             padding: 12px;
         }
 
@@ -104,10 +109,8 @@
             color: #fff;
         }
         
-        /* Placeholder styling */
         ::placeholder { color: #666 !important; opacity: 1; }
 
-        /* Griglia Bottoni Orari */
         #zona-orari {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -135,15 +138,15 @@
 
         .btn-orario.selezionato {
             background-color: var(--accent-color);
-            color: #000; /* Testo nero su giallo per contrasto */
+            color: #000; 
             border-color: var(--accent-color);
             font-weight: bold;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); /* Glow effect */
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); 
         }
 
         .btn-prenota {
             background: var(--accent-color);
-            color: #000; /* Nero */
+            color: #000; 
             font-weight: 900;
             border: none;
             margin-top: 25px;
@@ -162,7 +165,6 @@
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
         }
 
-        /* Privacy */
         .privacy-box {
             background-color: rgba(255,255,255,0.05);
             padding: 15px;
@@ -176,6 +178,14 @@
             color: #888;
             line-height: 1.4;
         }
+        
+        /* Link Privacy nel testo */
+        .privacy-link {
+            color: var(--accent-color);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .privacy-link:hover { color: var(--accent-hover); }
 
         .form-check-input {
             background-color: #333;
@@ -189,78 +199,138 @@
 
         .loading-text { color: var(--accent-color); font-style: italic; font-family: 'Oswald', sans-serif; }
         
-        /* Modifica per le option scure */
         option { background: #333; color: white; }
+
+        /* FOOTER */
+        .footer-info {
+            text-align: center;
+            color: #555;
+            font-size: 0.75rem;
+            margin-top: 30px;
+            padding-bottom: 10px;
+            width: 100%;
+        }
+        .footer-info p { margin: 2px 0; }
+        
+        /* MODAL DARK */
+        .modal-content {
+            background-color: var(--card-bg);
+            color: var(--primary-text);
+            border: 1px solid #444;
+        }
+        .modal-header { border-bottom: 1px solid #333; }
+        .modal-footer { border-top: 1px solid #333; }
+        .btn-close { filter: invert(1); }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div class="card-header-custom">
-        <!-- Ho diviso il nome per colorarlo come l'insegna -->
-        <h2>BARBER<span class="brand-shop">SHOP</span> 41</h2>
-    </div>
-    
-    <div class="p-4">
-        <div class="mb-3">
-            <label>Nome e Cognome <span class="obbligatorio">*</span></label>
-            <input type="text" id="nome" class="form-control" placeholder="Il tuo nome">
+<div class="main-container">
+    <div class="card">
+        <div class="card-header-custom">
+            <h2>BARBER<span class="brand-shop">SHOP</span> 41</h2>
         </div>
-
-        <div class="mb-3">
-            <label>Telefono <span class="obbligatorio">*</span></label>
-            <input type="tel" id="telefono" class="form-control" placeholder="333 1234567">
-        </div>
-
-        <div class="mb-3">
-            <label>Servizio <span class="obbligatorio">*</span></label>
-            <!-- Aggiornato con la lista della foto. onchange ricarica gli orari in base alla durata -->
-            <select id="servizio" class="form-select" onchange="caricaOrari()">
-                <option value="">Seleziona un trattamento...</option>
-                <option>Taglio donna / uomo</option>
-                <option>Taglio koreano</option>
-                <option>Colorazione, ricrescita</option>
-                <option>Balayage</option>
-                <option>Flamboyage</option>
-                <option>Contouring</option>
-                <option>Keratina lisciante/rimpolpante</option>
-                <option>Fiale curative e trattamenti</option>
-                <option>Detox del cuoio capelluto</option>
-            </select>
-        </div>
-
-        <div class="mb-3">
-            <label>Data <span class="obbligatorio">*</span></label>
-            <input type="date" id="data" class="form-control" onchange="caricaOrari()">
-        </div>
-
-        <div class="mb-3">
-            <label id="label-orari" style="display:none;">Orari Disponibili <span class="obbligatorio">*</span></label>
-            <div id="zona-orari"></div>
-            <input type="hidden" id="ora_selezionata">
-        </div>
-
-        <div class="mb-3">
-            <label>Note</label>
-            <textarea id="note" class="form-control" rows="2" placeholder="Richieste extra?"></textarea>
-        </div>
-
-        <!-- Privacy & GDPR -->
-        <div class="privacy-box mb-3">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="" id="privacyCheck">
-                <label class="form-check-label privacy-text" for="privacyCheck">
-                    Accetto il trattamento dati per la gestione appuntamento.
-                </label>
+        
+        <div class="p-4">
+            <div class="mb-3">
+                <label>Nome e Cognome <span class="obbligatorio">*</span></label>
+                <input type="text" id="nome" class="form-control" placeholder="Il tuo nome">
             </div>
-        </div>
 
-        <button onclick="inviaPrenotazione()" class="btn btn-prenota w-100">PRENOTA ORA</button>
+            <div class="mb-3">
+                <label>Telefono <span class="obbligatorio">*</span></label>
+                <input type="tel" id="telefono" class="form-control" placeholder="333 1234567">
+            </div>
+
+            <div class="mb-3">
+                <label>Servizio <span class="obbligatorio">*</span></label>
+                <select id="servizio" class="form-select" onchange="caricaOrari()">
+                    <option value="">Seleziona un trattamento...</option>
+                    <option>Taglio donna / uomo</option>
+                    <option>Taglio koreano</option>
+                    <option>Colorazione, ricrescita</option>
+                    <option>Balayage</option>
+                    <option>Flamboyage</option>
+                    <option>Contouring</option>
+                    <option>Keratina lisciante/rimpolpante</option>
+                    <option>Fiale curative e trattamenti</option>
+                    <option>Detox del cuoio capelluto</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label>Data <span class="obbligatorio">*</span></label>
+                <input type="date" id="data" class="form-control" onchange="caricaOrari()">
+            </div>
+
+            <div class="mb-3">
+                <label id="label-orari" style="display:none;">Orari Disponibili <span class="obbligatorio">*</span></label>
+                <div id="zona-orari"></div>
+                <input type="hidden" id="ora_selezionata">
+            </div>
+
+            <div class="mb-3">
+                <label>Note</label>
+                <textarea id="note" class="form-control" rows="2" placeholder="Richieste extra?"></textarea>
+            </div>
+
+            <div class="privacy-box mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="privacyCheck">
+                    <label class="form-check-label privacy-text" for="privacyCheck">
+                        Dichiaro di aver letto e accetto l'<a class="privacy-link" data-bs-toggle="modal" data-bs-target="#privacyModal">Informativa Privacy</a> e il trattamento dei dati personali (GDPR).
+                    </label>
+                </div>
+            </div>
+
+            <button onclick="inviaPrenotazione()" class="btn btn-prenota w-100">PRENOTA ORA</button>
+        </div>
     </div>
 </div>
 
+<!-- FOOTER CON DATI AZIENDALI -->
+<div class="footer-info">
+    <p><strong>BARBERSHOP 41</strong></p>
+    <p>Via Esempio 41, 10100 Torino (TO)</p>
+    <p>P.IVA: 12345678901</p>
+    <p>© 2026 - Powered by Patrizio D'Agostino</p>
+</div>
+
+<!-- MODAL PRIVACY POLICY -->
+<div class="modal fade" id="privacyModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Informativa Privacy (GDPR)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body small">
+                <p><strong>1. Titolare del Trattamento</strong><br>
+                Il titolare del trattamento è Barbershop 41, con sede in Via Esempio 41, Torino.</p>
+                
+                <p><strong>2. Dati Raccolti</strong><br>
+                Raccogliamo solo i dati necessari per la gestione dell'appuntamento: Nome, Cognome, Numero di Telefono e preferenze sul servizio.</p>
+                
+                <p><strong>3. Finalità</strong><br>
+                I dati vengono utilizzati esclusivamente per organizzare l'agenda e inviare notifiche di conferma o promemoria relative all'appuntamento.</p>
+                
+                <p><strong>4. Conservazione</strong><br>
+                I dati sono conservati digitalmente su server sicuri e non vengono ceduti a terzi per finalità di marketing senza esplicito consenso.</p>
+                
+                <p><strong>5. Diritti dell'Utente</strong><br>
+                In qualsiasi momento puoi richiedere la modifica o la cancellazione dei tuoi dati contattandoci direttamente in negozio.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Chiudi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS (Necessario per il Modal) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-    // Imposta la data minima a oggi
     document.getElementById('data').min = new Date().toISOString().split("T")[0];
 
     async function caricaOrari() {
@@ -269,13 +339,11 @@
         const zonaOrari = document.getElementById('zona-orari');
         const labelOrari = document.getElementById('label-orari');
         
-        // Carica solo se entrambi i campi sono compilati
         if (!dataScelta || !servizioScelto) return;
 
         zonaOrari.innerHTML = '<div class="loading-text">Ricerca slot disponibili...</div>';
         labelOrari.style.display = 'block';
 
-        // Manda anche il servizio al server!
         const params = new URLSearchParams({ data: dataScelta, servizio: servizioScelto });
         const response = await fetch(`/orari-disponibili?${params.toString()}`);
         const dati = await response.json();
@@ -284,7 +352,6 @@
         document.getElementById('ora_selezionata').value = ''; 
 
         if (dati.orari.length === 0) {
-            // Se c'è un messaggio specifico (es. Chiuso per ferie) lo mostriamo
             zonaOrari.innerHTML = `<div class="text-danger">${dati.message || "Nessun orario disponibile."}</div>`;
         } else {
             dati.orari.forEach(ora => {
@@ -328,7 +395,6 @@
         } else {
             const err = await response.json();
             alert("❌ Errore: " + err.detail);
-            // Ricarica gli orari perché magari qualcuno ha prenotato nel frattempo
             caricaOrari();
         }
     }

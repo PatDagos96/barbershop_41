@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Admin - Barbershop 41</title>
+    <!-- FIX CRITICO: viewport-fit=cover e user-scalable=no per evitare zoom indesiderati -->
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     
     <!-- PWA SETUP -->
@@ -20,6 +21,7 @@
     
     <style>
         :root {
+            /* PALETTE DARK MODE */
             --bg-color: #121212;
             --panel-bg: #1e1e1e;
             --header-bg: #000000;
@@ -109,11 +111,56 @@
         .settings-container { max-width: 800px; margin: 0 auto; background: var(--panel-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); }
         .holiday-tag { background-color: var(--danger); padding: 4px 10px; border-radius: 4px; margin-right: 5px; font-weight: bold; }
         
+        /* --- MEDIA QUERY MOBILE: QUI AVVIENE LA MAGIA PER RISOLVERE LA VISUALIZZAZIONE "BRUTTA" --- */
         @media (max-width: 768px) {
-            .admin-header { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px; }
-            .nav-controls { justify-content: space-between; order: 2; }
-            .search-container { order: 3; max-width: none; width: 100%; margin: 0; }
+            /* Riorganizza Header: Titolo su una riga, controlli sotto, ricerca sotto ancora */
+            .admin-header {
+                flex-direction: column; 
+                align-items: stretch; 
+                gap: 8px; 
+                padding: 10px;
+            }
+            
+            .nav-controls { 
+                justify-content: space-between; 
+                order: 2; 
+                width: 100%;
+            }
+            
+            .search-container { 
+                order: 3; 
+                max-width: none; 
+                width: 100%; 
+                margin: 0; 
+            }
+            
             .btn-group { order: 4; }
+            
+            /* Calendario più compatto su Mobile */
+            .day-cell { 
+                min-height: 65px; /* Meno alto per non scrollare troppo */
+                padding: 2px; 
+            }
+            
+            .day-number { 
+                font-size: 0.8rem; 
+                margin-bottom: 1px;
+            }
+            
+            .appt-indicator { 
+                font-size: 0.6rem; 
+                padding: 1px 2px; 
+                height: auto; 
+                line-height: 1.2;
+                margin-bottom: 1px;
+            }
+
+            /* FAB più piccolo su mobile e sollevato se serve */
+            .fab-btn { 
+                width: 55px; height: 55px; 
+                font-size: 28px; 
+                bottom: 20px; right: 20px; 
+            }
         }
     </style>
 </head>
@@ -228,7 +275,7 @@
                     </div>
                 </div>
                 
-                <!-- SEZIONE ORARI CONSIGLIATI (RIPRISTINATA) -->
+                <!-- SEZIONE ORARI CONSIGLIATI -->
                 <div class="mb-3">
                     <label class="form-label small text-muted">ORARI CONSIGLIATI (Clicca per inserire)</label>
                     <div id="suggested-slots" class="d-flex flex-wrap gap-2" style="min-height: 30px;">

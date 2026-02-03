@@ -80,7 +80,6 @@ def get_db():
         db.close()
 
 def controlla_credenziali(credentials: HTTPBasicCredentials = Depends(security)):
-    # Modifica qui username/password se vuoi cambiarli
     username_corretto = secrets.compare_digest(credentials.username, "admin")
     password_corretta = secrets.compare_digest(credentials.password, "password123")
     if not (username_corretto and password_corretta):
@@ -172,7 +171,16 @@ def get_orari(data: str, db: Session = Depends(get_db)):
     return {"orari": orari_liberi}
 
 @app.post("/prenota")
-def prenota(nome: str, telefono: str, servizio: str, data: str, ora: str, note: str = "", db: Session = Depends(get_db)):
+def prenota(
+    nome: str, 
+    telefono: str, 
+    servizio: str, 
+    data: str, 
+    ora: str, 
+    note: str = "", 
+    staff: str = "Barbiere", # Default importante per il sito pubblico
+    db: Session = Depends(get_db)
+):
     settings = load_settings()
     
     if data in settings["holidays"]:
@@ -192,7 +200,7 @@ def prenota(nome: str, telefono: str, servizio: str, data: str, ora: str, note: 
     if esiste:
         raise HTTPException(status_code=400, detail="Orario occupato!")
     
-    # Default staff="Barbiere" per le prenotazioni pubbliche
+    # Ora passiamo lo staff corretto (Barbiere o Donna)
     nuova = models.Appointment(
         cliente=nome, 
         telefono=telefono, 
@@ -200,12 +208,13 @@ def prenota(nome: str, telefono: str, servizio: str, data: str, ora: str, note: 
         data=data, 
         ora=ora, 
         note=note,
-        staff="Barbiere" 
+        staff=staff 
     )
     db.add(nuova)
     db.commit()
     
-    invia_telegram_admin(f"🔔 *PRENOTAZIONE WEB*\n👤 {nome}\n📅 {data} {ora}\n📞 {telefono}")
+    msg_staff = " (Donna)" if staff == "Donna" else ""
+    invia_telegram_admin(f"🔔 *PRENOTAZIONE WEB{msg_staff}*\n👤 {nome}\n📅 {data} {ora}\n📞 {telefono}")
 
     return {"status": "successo", "messaggio": "Prenotazione Confermata!"}
 

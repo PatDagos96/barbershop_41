@@ -13,5 +13,5 @@ class Appointment(Base):
     note = Column(String, nullable=True)
     
     # NUOVA COLONNA: Chi esegue il lavoro?
-    # Default = "Barbiere" (così i vecchi appuntamenti non si rompono)
+    # Default = "Barbiere" (così se manca, lo assegniamo a lui)
     staff = Column(String, default="Barbiere")

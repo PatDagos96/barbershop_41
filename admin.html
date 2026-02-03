@@ -225,6 +225,7 @@
                     </div>
                     <div class="col-4">
                         <label class="form-label small">ORA</label>
+                        <!-- CORREZIONE: Input testo libero per massima flessibilità ADMIN -->
                         <input type="text" id="appt-ora" class="form-control" placeholder="09:00">
                     </div>
                 </div>
@@ -396,7 +397,19 @@
 
         mostraLoader(true);
         const id = document.getElementById('appt-id').value;
-        const url = id ? `/modifica/${id}` : `/prenota?${new URLSearchParams(payload).toString()}`;
+        
+        // CORREZIONE CRITICA: Aggiunto 'staff' ai parametri GET per /prenota
+        const params = new URLSearchParams({
+            nome: payload.cliente, 
+            telefono: payload.telefono, 
+            servizio: payload.servizio, 
+            data: payload.data, 
+            ora: payload.ora, 
+            note: payload.note,
+            staff: payload.staff // <--- AGGIUNTO QUI
+        });
+
+        const url = id ? `/modifica/${id}` : `/prenota?${params.toString()}`;
         const method = id ? 'PUT' : 'POST';
         
         try {

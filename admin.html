@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Admin - Barbershop 41</title>
+    <!-- FIX CRITICO: viewport-fit=cover e user-scalable=no per evitare zoom indesiderati -->
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     
     <!-- PWA SETUP -->
@@ -13,13 +14,18 @@
     <link rel="apple-touch-icon" href="/icon.svg">
     <link rel="icon" type="image/svg+xml" href="/icon.svg">
 
+    <!-- Bootstrap CSS & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     
+    <!-- FONT: Oswald (Titoli) e Roboto (Testo) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
+            /* PALETTE DARK MODE */
             --bg-color: #121212;
             --panel-bg: #1e1e1e;
             --header-bg: #000000;
@@ -105,7 +111,7 @@
         /* Indicatore colorato per Donna nel calendario mensile */
         .appt-indicator.staff-donna { background-color: var(--accent-donna); color: white; }
 
-        /* STILI SETTINGS (NASCOSTI PER BREVITÀ MA PRESENTI) */
+        /* STILI SETTINGS */
         .settings-container { max-width: 800px; margin: 0 auto; background: var(--panel-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); }
         .holiday-tag { background-color: var(--danger); padding: 4px 10px; border-radius: 4px; margin-right: 5px; font-weight: bold; }
         
@@ -225,7 +231,7 @@
                     </div>
                     <div class="col-4">
                         <label class="form-label small">ORA</label>
-                        <!-- CORREZIONE: Input testo libero per massima flessibilità ADMIN -->
+                        <!-- Input manuale per massima flessibilità -->
                         <input type="text" id="appt-ora" class="form-control" placeholder="09:00">
                     </div>
                 </div>
@@ -419,7 +425,11 @@
                 body: id ? JSON.stringify(payload) : null
             });
             if(res.ok) { modal.hide(); scaricaDati(); }
-            else { alert("Errore: " + (await res.json()).detail); }
+            else { 
+                const err = await res.json(); 
+                // Evitiamo [object Object] convertendo in stringa
+                alert("Errore: " + (typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail))); 
+            }
         } catch(e) { alert("Errore rete"); } finally { mostraLoader(false); }
     }
 
@@ -431,9 +441,7 @@
     function mostraLoader(x) { document.getElementById('loader').style.display = x ? 'flex' : 'none'; }
     function sePremiInvio(e) { if(e.key==="Enter") cercaCliente(); }
     
-    // Funzioni Settings e Cancella Multipli omesse per brevità ma identiche a prima...
-    // Assicurarsi di copiare le funzioni salvaImpostazioni, renderSettings, eliminaSelezionati dal codice precedente se servono full.
-    // Qui ho mantenuto il core logic per la modifica richiesta.
+    // Funzioni Settings e Cancella Multipli
     async function eliminaCorrente() {
         if(confirm("Eliminare?")) {
             await fetch(BASE_URL + `/cancella/${document.getElementById('appt-id').value}`, {method:'DELETE'});
@@ -449,10 +457,81 @@
         }
     }
     
-    // SETTINGS (minimized)
-    function renderSettings() { /* ... codice settings standard ... */ }
-    async function salvaImpostazioni() { /* ... codice save settings standard ... */ }
-    function addHoliday() { /* ... */ }
+    // SETTINGS
+    function renderSettings() { 
+        const list = document.getElementById('weekly-hours-list');
+        list.innerHTML = '';
+        let order = [1, 2, 3, 4, 5, 6, 0]; 
+        const daysITA = ["DOM", "LUN", "MAR", "MER", "GIO", "VEN", "SAB"];
+        const daysENG = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        
+        order.forEach(dayIndex => {
+            const dayEng = daysENG[dayIndex];
+            const dayIta = daysITA[dayIndex];
+            const config = siteSettings.weekly[dayEng];
+            list.innerHTML += `
+                <div class="day-setting-row">
+                    <div class="form-check form-switch mb-2 mb-md-0">
+                        <input class="form-check-input" type="checkbox" id="open-${dayEng}" ${config.open ? 'checked' : ''} onchange="toggleDay('${dayEng}')">
+                        <label class="form-check-label fw-bold text-white">${dayIta}</label>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center w-100 w-md-auto">
+                        <input type="time" id="start-${dayEng}" value="${config.start}" class="form-control form-control-sm" ${!config.open ? 'disabled' : ''}>
+                        <span class="text-white">-</span>
+                        <input type="time" id="end-${dayEng}" value="${config.end}" class="form-control form-control-sm" ${!config.open ? 'disabled' : ''}>
+                    </div>
+                </div>
+            `;
+        });
+        renderHolidaysList();
+    }
+
+    function toggleDay(dayEng) {
+        const isOpen = document.getElementById(`open-${dayEng}`).checked;
+        document.getElementById(`start-${dayEng}`).disabled = !isOpen;
+        document.getElementById(`end-${dayEng}`).disabled = !isOpen;
+    }
+
+    function addHoliday() {
+        const startVal = document.getElementById('holiday-input').value;
+        if (!startVal) return alert("Inserisci data inizio!");
+        if (!siteSettings.holidays.includes(startVal)) siteSettings.holidays.push(startVal);
+        siteSettings.holidays.sort();
+        renderHolidaysList();
+        document.getElementById('holiday-input').value = '';
+    }
+
+    function removeHoliday(dateVal) {
+        siteSettings.holidays = siteSettings.holidays.filter(d => d !== dateVal);
+        renderHolidaysList();
+    }
+
+    function renderHolidaysList() {
+        const container = document.getElementById('holidays-list');
+        container.innerHTML = '';
+        siteSettings.holidays.forEach(date => {
+            const [y, m, d] = date.split('-');
+            container.innerHTML += `<div class="holiday-tag">${d}/${m}/${y} <button onclick="removeHoliday('${date}')">&times;</button></div>`;
+        });
+    }
+
+    async function salvaImpostazioni() {
+        const daysENG = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        daysENG.forEach(dayEng => {
+            siteSettings.weekly[dayEng].open = document.getElementById(`open-${dayEng}`).checked;
+            siteSettings.weekly[dayEng].start = document.getElementById(`start-${dayEng}`).value;
+            siteSettings.weekly[dayEng].end = document.getElementById(`end-${dayEng}`).value;
+        });
+        mostraLoader(true);
+        try {
+            const res = await fetch(BASE_URL + '/settings', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(siteSettings)
+            });
+            if(res.ok) { alert("Salvato!"); cambiaVista('mese'); }
+        } catch (e) { alert("Errore"); } finally { mostraLoader(false); }
+    }
 </script>
 </body>
 </html>

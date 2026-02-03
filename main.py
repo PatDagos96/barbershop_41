@@ -19,7 +19,7 @@ security = HTTPBasic()
 # File dove salviamo orari e ferie (persistenza leggera)
 SETTINGS_FILE = "settings.json"
 
-# Abilitiamo CORS
+# Abilitiamo CORS (Fondamentale se il frontend è su un dominio diverso o locale)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -28,7 +28,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- 1. GESTIONE IMPOSTAZIONI ---
+# --- 1. GESTIONE IMPOSTAZIONI (LOGICA JSON) ---
+# Configurazioni di default (usate se il file non esiste ancora)
 DEFAULT_SETTINGS = {
     "weekly": {
         "Monday": {"open": False, "start": "09:00", "end": "19:00"},
@@ -43,14 +44,17 @@ DEFAULT_SETTINGS = {
 }
 
 def load_settings():
+    """Legge le impostazioni dal file JSON."""
     if not os.path.exists(SETTINGS_FILE):
         with open(SETTINGS_FILE, "w") as f:
             json.dump(DEFAULT_SETTINGS, f)
         return DEFAULT_SETTINGS
+    
     with open(SETTINGS_FILE, "r") as f:
         return json.load(f)
 
 def save_settings_to_file(settings_data):
+    """Scrive le nuove impostazioni su disco."""
     with open(SETTINGS_FILE, "w") as f:
         json.dump(settings_data, f)
 
@@ -62,12 +66,14 @@ class PrenotazioneUpdate(BaseModel):
     data: str
     ora: str
     note: Optional[str] = ""
-    staff: Optional[str] = "Barbiere" # NUOVO CAMPO
+    staff: Optional[str] = "Barbiere" # NUOVO CAMPO: Fondamentale per l'aggiornamento
 
+# Modello per validare i dati che arrivano dal pannello Admin
 class SettingsModel(BaseModel):
     weekly: Dict[str, Any]
     holidays: List[str]
 
+# NUOVO MODELLO PER CANCELLAZIONE MULTIPLA
 class ListaID(BaseModel):
     ids: List[int]
 
@@ -80,6 +86,7 @@ def get_db():
         db.close()
 
 def controlla_credenziali(credentials: HTTPBasicCredentials = Depends(security)):
+    # Qui username e password sono ancora hardcoded per semplicità
     username_corretto = secrets.compare_digest(credentials.username, "admin")
     password_corretta = secrets.compare_digest(credentials.password, "password123")
     if not (username_corretto and password_corretta):
@@ -92,15 +99,17 @@ def controlla_credenziali(credentials: HTTPBasicCredentials = Depends(security))
 
 # --- TELEGRAM ---
 def invia_telegram_admin(messaggio):
-    token = os.environ.get("TELEGRAM_BOT_TOKEN", "INSERISCI_TOKEN") 
-    chat_id = os.environ.get("TELEGRAM_CHAT_ID", "INSERISCI_CHAT_ID")
+    # Prova a leggere da variabili d'ambiente (Render), altrimenti usa i valori di fallback (Locale)
+    token = os.environ.get("TELEGRAM_BOT_TOKEN", "INSERISCI_TUO_TOKEN_QUI") 
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID", "INSERISCI_TUO_ID_QUI")
     
-    if "INSERISCI" in token: 
-        print("⚠️ Telegram Token non configurato.")
+    if not token or "INSERISCI" in token: 
+        print("⚠️ Telegram Token non configurato. Notifica saltata.")
         return
 
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     payload = {"chat_id": chat_id, "text": messaggio, "parse_mode": "Markdown"}
+    
     try:
         requests.post(url, json=payload)
     except Exception as e:
@@ -111,10 +120,12 @@ def invia_telegram_admin(messaggio):
 def home():
     return FileResponse("index.html")
 
+# AGGIUNTA PER PWA: Permette di scaricare il manifesto
 @app.get("/manifest.json")
 def get_manifest():
     return FileResponse("manifest.json")
 
+# AGGIUNTA PER ICONA: Serve il file SVG quando richiesto
 @app.get("/icon.svg")
 def get_icon():
     return FileResponse("icon.svg")
@@ -125,33 +136,40 @@ def pannello_admin(username: str = Depends(controlla_credenziali)):
 
 # --- API ---
 
+# 1. API PER LE IMPOSTAZIONI (Nuove!)
 @app.get("/settings")
 def get_settings_api():
     return load_settings()
 
 @app.post("/settings")
 def update_settings_api(settings: SettingsModel): 
+    # Salviamo le modifiche inviate dal pannello Admin
     save_settings_to_file(settings.dict())
     return {"message": "Impostazioni aggiornate"}
 
+# 2. CALCOLO ORARI DISPONIBILI (DINAMICO)
 @app.get("/orari-disponibili")
 def get_orari(data: str, db: Session = Depends(get_db)):
     settings = load_settings()
     
+    # A. Check Ferie
     if data in settings["holidays"]:
         return {"orari": [], "message": "Chiuso per ferie"}
 
+    # B. Identifica giorno della settimana
     try:
         date_obj = datetime.strptime(data, "%Y-%m-%d")
-        day_name = date_obj.strftime("%A")
+        day_name = date_obj.strftime("%A") # "Monday", "Tuesday"...
     except ValueError:
         return {"orari": [], "message": "Data non valida"}
 
     day_config = settings["weekly"].get(day_name)
 
+    # C. Check Chiusura Settimanale
     if not day_config or not day_config["open"]:
         return {"orari": [], "message": "Giorno di chiusura"}
 
+    # D. Generazione Slot (range dinamico)
     start_time = datetime.strptime(day_config["start"], "%H:%M")
     end_time = datetime.strptime(day_config["end"], "%H:%M")
     
@@ -159,13 +177,15 @@ def get_orari(data: str, db: Session = Depends(get_db)):
     current = start_time
     while current < end_time:
         orari_possibili.append(current.strftime("%H:%M"))
-        current += timedelta(minutes=30)
+        current += timedelta(minutes=30) # Slot fissi di 30 min
 
-    # Nota: Qui potremmo filtrare per staff se volessimo gestire due agende parallele.
-    # Per ora lasciamo semplice: se uno slot è occupato da CHIUNQUE, è occupato.
+    # E. Check Database (SQLAlchemy)
+    # Nota: Attualmente controlliamo se l'orario è occupato IN GENERALE.
+    # Se volessi gestire due agende separate, dovresti filtrare anche per staff qui.
     prenotazioni = db.query(models.Appointment).filter(models.Appointment.data == data).all()
     orari_occupati = [p.ora for p in prenotazioni]
     
+    # F. Sottrazione insiemistica
     orari_liberi = [ora for ora in orari_possibili if ora not in orari_occupati]
     
     return {"orari": orari_liberi}
@@ -181,11 +201,14 @@ def prenota(
     staff: str = "Barbiere", # Default importante per il sito pubblico
     db: Session = Depends(get_db)
 ):
+    # 1. CONTROLLO SICUREZZA: IL GIORNO È APERTO?
     settings = load_settings()
     
+    # Check Ferie
     if data in settings["holidays"]:
-        raise HTTPException(status_code=400, detail="Chiuso per ferie!")
+        raise HTTPException(status_code=400, detail="Ci dispiace, in questa data siamo chiusi per ferie!")
 
+    # Check Giorno Settimana
     try:
         date_obj = datetime.strptime(data, "%Y-%m-%d")
         day_name = date_obj.strftime("%A") 
@@ -194,13 +217,14 @@ def prenota(
 
     day_config = settings["weekly"].get(day_name)
     if not day_config or not day_config["open"]:
-        raise HTTPException(status_code=400, detail=f"Chiuso di {day_name}!")
+        raise HTTPException(status_code=400, detail=f"Siamo chiusi di {day_name}!")
 
+    # 2. Verifica doppia prenotazione (Race condition check)
     esiste = db.query(models.Appointment).filter(models.Appointment.data == data, models.Appointment.ora == ora).first()
     if esiste:
-        raise HTTPException(status_code=400, detail="Orario occupato!")
+        raise HTTPException(status_code=400, detail="Orario appena occupato da un altro cliente!")
     
-    # Ora passiamo lo staff corretto (Barbiere o Donna)
+    # Creiamo l'appuntamento con il campo STAFF
     nuova = models.Appointment(
         cliente=nome, 
         telefono=telefono, 
@@ -213,8 +237,12 @@ def prenota(
     db.add(nuova)
     db.commit()
     
+    # Notifica Telegram
     msg_staff = " (Donna)" if staff == "Donna" else ""
-    invia_telegram_admin(f"🔔 *PRENOTAZIONE WEB{msg_staff}*\n👤 {nome}\n📅 {data} {ora}\n📞 {telefono}")
+    msg = f"🔔 *NUOVA PRENOTAZIONE{msg_staff}*\n\n👤 {nome}\n✂️ {servizio}\n📅 {data} alle {ora}\n📞 {telefono}"
+    if note:
+        msg += f"\n📝 Note: {note}"
+    invia_telegram_admin(msg)
 
     return {"status": "successo", "messaggio": "Prenotazione Confermata!"}
 
@@ -228,6 +256,7 @@ def modifica_appuntamento(id: int, app_update: PrenotazioneUpdate, db: Session =
     if not prenotazione:
         raise HTTPException(status_code=404, detail="Appuntamento non trovato")
 
+    # Se cambia orario, controlliamo che il nuovo non sia occupato
     if (prenotazione.data != app_update.data) or (prenotazione.ora != app_update.ora):
         occupato = db.query(models.Appointment).filter(
             models.Appointment.data == app_update.data, 
@@ -235,7 +264,7 @@ def modifica_appuntamento(id: int, app_update: PrenotazioneUpdate, db: Session =
             models.Appointment.id != id
         ).first()
         if occupato:
-             raise HTTPException(status_code=400, detail="Orario già occupato!")
+             raise HTTPException(status_code=400, detail="Il nuovo orario scelto è già occupato!")
 
     prenotazione.cliente = app_update.cliente
     prenotazione.telefono = app_update.telefono
@@ -243,10 +272,11 @@ def modifica_appuntamento(id: int, app_update: PrenotazioneUpdate, db: Session =
     prenotazione.data = app_update.data
     prenotazione.ora = app_update.ora
     prenotazione.note = app_update.note
-    prenotazione.staff = app_update.staff # Aggiorniamo lo staff
+    # Aggiorniamo anche lo staff
+    prenotazione.staff = app_update.staff
     
     db.commit()
-    return {"messaggio": "Modificato con successo"}
+    return {"messaggio": "Appuntamento modificato con successo"}
 
 @app.delete("/cancella/{id}")
 def cancella(id: int, db: Session = Depends(get_db)):
@@ -256,14 +286,19 @@ def cancella(id: int, db: Session = Depends(get_db)):
         db.commit()
     return {"ok": True}
 
+# --- NUOVA API PER CANCELLAZIONE MULTIPLA ---
 @app.post("/cancella-multipli")
 def cancella_multipli(lista: ListaID, db: Session = Depends(get_db)):
+    # La query .in_() seleziona tutti gli ID presenti nella lista e li cancella in un colpo solo
+    # synchronize_session=False serve per ottimizzare l'operazione
     db.query(models.Appointment).filter(models.Appointment.id.in_(lista.ids)).delete(synchronize_session=False)
     db.commit()
-    return {"ok": True}
+    return {"ok": True, "messaggio": f"Cancellati {len(lista.ids)} appuntamenti"}
 
+# --- NUOVA API RICERCA ---
 @app.get("/cerca-cliente")
 def cerca_cliente(q: str, db: Session = Depends(get_db)):
+    # Cerca appuntamenti dove il nome o il telefono contengono la stringa 'q' (case insensitive)
     risultati = db.query(models.Appointment).filter(
         (models.Appointment.cliente.ilike(f"%{q}%")) | 
         (models.Appointment.telefono.ilike(f"%{q}%"))

@@ -178,7 +178,7 @@
         <div id="search-results-list"></div>
     </div>
 
-    <!-- SETTINGS CON PAUSA PRANZO -->
+    <!-- SETTINGS CON PAUSA PRANZO E FERIE DAL-AL -->
     <div id="settings-view" class="container" style="display: none;">
         <div class="settings-container">
             <h5 class="text-warning">ORARI SETTIMANALI</h5>
@@ -187,11 +187,17 @@
             </div>
             <div id="weekly-hours-list"></div>
             
-            <h5 class="text-warning mt-4">FERIE</h5>
+            <h5 class="text-warning mt-4">FERIE (DAL - AL)</h5>
             <div class="input-group mb-3">
+                <span class="input-group-text bg-dark text-white border-secondary">Dal</span>
                 <input type="date" id="holiday-input" class="form-control">
-                <button class="btn btn-danger" onclick="addHoliday()">BLOCCA</button>
             </div>
+            <div class="input-group mb-3">
+                <span class="input-group-text bg-dark text-white border-secondary">Al</span>
+                <input type="date" id="holiday-end-input" class="form-control">
+                <button class="btn btn-danger" onclick="addHoliday()">BLOCCA PERIODO</button>
+            </div>
+            
             <div id="holidays-list" class="mb-3 d-flex flex-wrap gap-2"></div>
             <button class="btn btn-success w-100 mt-3 fw-bold" style="background: var(--accent); color: black; border:none;" onclick="salvaImpostazioni()">SALVA TUTTO</button>
         </div>
@@ -493,7 +499,7 @@
         checked.length > 0 ? bulkDiv.classList.remove('d-none') : bulkDiv.classList.add('d-none');
     }
     
-    // --- GESTIONE RENDER IMPOSTAZIONI (RIPRISTINATA UI PAUSA) ---
+    // --- GESTIONE RENDER IMPOSTAZIONI (RIPRISTINATA UI PAUSA E FERIE RANGE) ---
     function renderSettings() { 
         const list = document.getElementById('weekly-hours-list');
         list.innerHTML = '';
@@ -544,7 +550,38 @@
     }
 
     function removeHoliday(h) { siteSettings.holidays = siteSettings.holidays.filter(d => d !== h); renderSettings(); }
-    function addHoliday() { const v = document.getElementById('holiday-input').value; if(v && !siteSettings.holidays.includes(v)) { siteSettings.holidays.push(v); renderSettings(); }}
+    
+    // Funzione aggiornata per gestire intervalli di date
+    function addHoliday() { 
+        const startVal = document.getElementById('holiday-input').value;
+        const endVal = document.getElementById('holiday-end-input').value;
+        
+        if (!startVal) return alert("Inserisci almeno la data di inizio!");
+        
+        let current = new Date(startVal);
+        // Se non c'è data fine, usa solo la data inizio (giorno singolo)
+        const end = endVal ? new Date(endVal) : new Date(startVal);
+        
+        if (current > end) return alert("Data fine deve essere successiva alla data inizio!");
+
+        let added = false;
+        // Ciclo dal giorno inizio al giorno fine
+        while (current <= end) {
+            const dateStr = current.toISOString().split('T')[0];
+            if (!siteSettings.holidays.includes(dateStr)) {
+                siteSettings.holidays.push(dateStr);
+                added = true;
+            }
+            current.setDate(current.getDate() + 1);
+        }
+        
+        if (added) {
+            siteSettings.holidays.sort();
+            renderSettings();
+            document.getElementById('holiday-input').value = '';
+            document.getElementById('holiday-end-input').value = '';
+        }
+    }
     
     async function salvaImpostazioni() {
         const daysENG = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];

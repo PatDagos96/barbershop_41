@@ -27,7 +27,7 @@ app.add_middleware(
 )
 
 # --- 1. GESTIONE IMPOSTAZIONI ---
-# Aggiunti default per pausa pranzo (break_start, break_end, continuous)
+# Default con gestione PAUSA PRANZO
 DEFAULT_SETTINGS = {
     "weekly": {
         "Monday":    {"open": False, "start": "09:00", "end": "19:00", "continuous": False, "break_start": "13:00", "break_end": "14:00"},
@@ -47,11 +47,10 @@ def load_settings():
             json.dump(DEFAULT_SETTINGS, f)
         return DEFAULT_SETTINGS
     with open(SETTINGS_FILE, "r") as f:
-        # Usiamo un merge per garantire che i nuovi campi esistano anche se il file è vecchio
         data = json.load(f)
+        # Merge per sicurezza (se il file è vecchio aggiunge i campi mancanti)
         for day, params in DEFAULT_SETTINGS["weekly"].items():
             if day in data["weekly"]:
-                # Se mancano le chiavi nuove nel file salvato, le aggiungiamo dal default
                 for key, val in params.items():
                     if key not in data["weekly"][day]:
                         data["weekly"][day][key] = val
@@ -145,33 +144,26 @@ def get_orari(data: str, db: Session = Depends(get_db)):
     if not day_config or not day_config["open"]:
         return {"orari": [], "message": "Giorno di chiusura"}
 
-    # Logica Generazione Slot
     start_time = datetime.strptime(day_config["start"], "%H:%M")
     end_time = datetime.strptime(day_config["end"], "%H:%M")
     
-    # Gestione Pausa
+    # LOGICA PAUSA
     has_break = not day_config.get("continuous", False)
     break_start = datetime.strptime(day_config.get("break_start", "13:00"), "%H:%M").time()
     break_end = datetime.strptime(day_config.get("break_end", "14:00"), "%H:%M").time()
 
     orari_possibili = []
     current = start_time
-    
     while current < end_time:
         slot_time = current.time()
-        
-        # Se c'è la pausa e l'orario corrente cade dentro la pausa, saltiamo
-        in_pausa = False
-        if has_break:
-            if break_start <= slot_time < break_end:
-                in_pausa = True
-        
-        if not in_pausa:
+        # Se c'è la pausa e siamo nel range, saltiamo
+        if has_break and (break_start <= slot_time < break_end):
+            pass 
+        else:
             orari_possibili.append(current.strftime("%H:%M"))
-            
         current += timedelta(minutes=30)
 
-    # Filtra occupati
+    # Filtro occupati
     prenotazioni = db.query(models.Appointment).filter(models.Appointment.data == data).all()
     orari_occupati = [p.ora for p in prenotazioni]
     orari_liberi = [ora for ora in orari_possibili if ora not in orari_occupati]
@@ -180,7 +172,6 @@ def get_orari(data: str, db: Session = Depends(get_db)):
 
 @app.post("/prenota")
 def prenota(nome: str, telefono: str, servizio: str, data: str, ora: str, note: str = "", staff: str = "Barbiere", db: Session = Depends(get_db)):
-    # Re-implementazione logica sicurezza (simile a get_orari ma lancia eccezioni)
     settings = load_settings()
     if data in settings["holidays"]: raise HTTPException(400, "Chiuso per ferie!")
     
@@ -189,13 +180,13 @@ def prenota(nome: str, telefono: str, servizio: str, data: str, ora: str, note: 
     
     if not day_config or not day_config["open"]: raise HTTPException(400, "Chiuso!")
 
-    # Check orario valido (es. non in pausa)
+    # Check Pausa
     if not day_config.get("continuous", False):
         bs = datetime.strptime(day_config.get("break_start", "13:00"), "%H:%M").time()
         be = datetime.strptime(day_config.get("break_end", "14:00"), "%H:%M").time()
         slot_t = datetime.strptime(ora, "%H:%M").time()
         if bs <= slot_t < be:
-             raise HTTPException(400, "Orario in pausa pranzo!")
+             raise HTTPException(400, "Siamo in pausa pranzo!")
 
     if db.query(models.Appointment).filter(models.Appointment.data == data, models.Appointment.ora == ora).first():
         raise HTTPException(400, "Orario occupato!")

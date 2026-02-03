@@ -388,7 +388,7 @@
             container.innerHTML += `
             <div class="appt-card ${extraClass}" onclick="apriModifica(${a.id})">
                 <div class="pe-2" onclick="event.stopPropagation()">
-                    <input type="checkbox" class="form-check-input select-mode-check" value="${a.id}">
+                    <input type="checkbox" class="form-check-input select-mode-check" value="${a.id}" onchange="aggiornaBulk()">
                 </div>
                 <div class="time-box" style="color: ${a.staff === 'Donna' ? 'var(--accent-donna)' : 'var(--accent)'}">${a.ora}</div>
                 <div class="info-box">
@@ -517,6 +517,12 @@
         daysENG.forEach(d => { siteSettings.weekly[d].open = document.getElementById(`open-${d}`).checked; siteSettings.weekly[d].start = document.getElementById(`start-${d}`).value; siteSettings.weekly[d].end = document.getElementById(`end-${d}`).value; });
         await fetch(BASE_URL+'/settings', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(siteSettings)});
         alert("Salvato!");
+    }
+    function aggiornaBulk() {
+        const checked = document.querySelectorAll('.select-mode-check:checked');
+        const bulkDiv = document.getElementById('bulk-actions');
+        document.getElementById('count-selected').textContent = checked.length;
+        checked.length > 0 ? bulkDiv.classList.remove('d-none') : bulkDiv.classList.add('d-none');
     }
 </script>
 </body>

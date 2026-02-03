@@ -126,6 +126,11 @@ def home():
 def get_manifest():
     return FileResponse("manifest.json")
 
+# AGGIUNTA PER ICONA: Serve il file SVG quando richiesto
+@app.get("/icon.svg")
+def get_icon():
+    return FileResponse("icon.svg")
+
 @app.get("/admin")
 def pannello_admin(username: str = Depends(controlla_credenziali)):
     return FileResponse("admin.html")

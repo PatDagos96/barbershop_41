@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Sfondo Nero -->
+  <rect width="512" height="512" fill="#000000"/>
+  
+  <!-- Testo "BS" al centro -->
+  <text x="50%" y="50%" 
+        dominant-baseline="middle" 
+        text-anchor="middle" 
+        font-family="Arial, sans-serif" 
+        font-weight="bold" 
+        font-size="280">
+    <!-- La B Bianca -->
+    <tspan fill="#ffffff" dy="20">B</tspan>
+    <!-- La S Giallo Oro -->
+    <tspan fill="#ffd700" dy="0">S</tspan>
+  </text>
+</svg>

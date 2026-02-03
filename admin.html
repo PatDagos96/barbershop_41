@@ -6,6 +6,17 @@
     <!-- FIX CRITICO: viewport-fit=cover e user-scalable=no per evitare zoom indesiderati -->
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     
+    <!-- PWA SETUP (Questa parte serve per l'icona sul telefono del Barbiere) -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Barber Admin">
+    
+    <!-- ICONA IPHONE/IPAD (Cambia il link se hai un logo personalizzato) -->
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/10397/10397072.png">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/10397/10397072.png">
+
     <!-- Bootstrap CSS & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
@@ -419,7 +430,7 @@
     <div class="spinner-border text-warning" role="status"></div>
 </div>
 
-<!-- Modal Appuntamento (Scrollable per evitare che la tastiera lo copra) -->
+<!-- Modal Appuntamento -->
 <div class="modal fade" id="apptModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
@@ -431,7 +442,7 @@
                 <input type="hidden" id="appt-id">
                 <div class="mb-2">
                     <label class="form-label small">CLIENTE <span class="text-danger">*</span></label>
-                    <input type="text" id="appt-cliente" class="form-control" placeholder="Nome Cognome">
+                    <input type="text" id="appt-cliente" class="form-control" placeholder="Nome">
                 </div>
                 <div class="row mb-2">
                     <div class="col-6">
@@ -457,11 +468,18 @@
                     </div>
                     <div class="col-4">
                         <label class="form-label small">ORA</label>
-                        <select id="appt-ora" class="form-select">
-                            <option value="">...</option>
-                        </select>
+                         <!-- RIPRISTINATO INPUT TESTO LIBERO CON SUGGERIMENTI -->
+                        <input type="text" id="appt-ora" class="form-control" placeholder="09:00">
                     </div>
                 </div>
+                <!-- SUGGERIMENTI ORARI -->
+                <div class="mb-2">
+                    <label class="form-label small">Suggerimenti (Liberi):</label>
+                    <div id="suggested-slots" class="d-flex flex-wrap gap-1" style="max-height: 80px; overflow-y: auto;">
+                        <span class="text-muted small fst-italic">Seleziona data...</span>
+                    </div>
+                </div>
+
                 <div class="mb-2">
                     <label class="form-label small">NOTE</label>
                     <textarea id="appt-note" class="form-control" rows="2"></textarea>
@@ -509,8 +527,9 @@
         scaricaDati();
         scaricaImpostazioni();
         
-        document.getElementById('appt-data').addEventListener('change', caricaOrariAdmin);
-        document.getElementById('appt-servizio').addEventListener('change', caricaOrariAdmin);
+        // Listener per caricare suggerimenti orari
+        document.getElementById('appt-data').addEventListener('change', caricaSuggerimentiOrari);
+        document.getElementById('appt-servizio').addEventListener('change', caricaSuggerimentiOrari);
     });
 
     // --- FUNZIONI DI RICERCA ---
@@ -570,18 +589,15 @@
         cambiaVista('mese');
     }
 
-    // --- CARICAMENTO ORARI DINAMICO ---
-    async function caricaOrariAdmin() {
+    // --- CARICAMENTO SUGGERIMENTI ORARI (ADMIN POWER) ---
+    async function caricaSuggerimentiOrari() {
         const dataVal = document.getElementById('appt-data').value;
         const servizioVal = document.getElementById('appt-servizio').value;
-        const oraSelect = document.getElementById('appt-ora');
+        const suggestionsDiv = document.getElementById('suggested-slots');
         
         if (!dataVal) return;
 
-        const currentOra = oraSelect.getAttribute('data-current');
-        const originalData = document.getElementById('appt-data').getAttribute('data-original');
-
-        oraSelect.innerHTML = '<option>Caricamento...</option>';
+        suggestionsDiv.innerHTML = '<span class="text-muted small">Caricamento...</span>';
 
         try {
             const params = new URLSearchParams({ data: dataVal, servizio: servizioVal || "Taglio Uomo" });
@@ -589,30 +605,26 @@
             const dati = await res.json();
             
             let slots = dati.orari || [];
-
-            if (currentOra && dataVal === originalData && !slots.includes(currentOra)) {
-                slots.push(currentOra);
-                slots.sort();
-            }
-
-            oraSelect.innerHTML = '';
+            
+            suggestionsDiv.innerHTML = '';
+            
             if (slots.length === 0) {
-                oraSelect.innerHTML = '<option value="">Nessun orario</option>';
+                suggestionsDiv.innerHTML = '<span class="text-danger small">Nessun orario libero standard. Puoi forzare l\'inserimento manuale.</span>';
             } else {
                 slots.forEach(ora => {
-                    const opt = document.createElement('option');
-                    opt.value = ora;
-                    opt.textContent = ora;
-                    oraSelect.appendChild(opt);
+                    const badge = document.createElement('span');
+                    badge.className = 'badge bg-secondary me-1 mb-1';
+                    badge.style.cursor = 'pointer';
+                    badge.textContent = ora;
+                    badge.onclick = () => {
+                        document.getElementById('appt-ora').value = ora;
+                    };
+                    suggestionsDiv.appendChild(badge);
                 });
-            }
-            
-            if (currentOra && slots.includes(currentOra)) {
-                oraSelect.value = currentOra;
             }
         } catch (e) {
             console.error(e);
-            oraSelect.innerHTML = '<option value="">Errore</option>';
+            suggestionsDiv.innerHTML = '<span class="text-danger small">Errore caricamento.</span>';
         }
     }
 
@@ -891,9 +903,10 @@
         document.getElementById('appt-note').value = "";
         document.getElementById('appt-data').value = currentDate.toISOString().split('T')[0];
         
-        document.getElementById('appt-ora').removeAttribute('data-current');
-        document.getElementById('appt-data').removeAttribute('data-original');
-        caricaOrariAdmin();
+        // Reset orari e suggerimenti
+        document.getElementById('appt-ora').value = "";
+        document.getElementById('suggested-slots').innerHTML = '<span class="text-muted small fst-italic">Seleziona data e servizio...</span>';
+        caricaSuggerimentiOrari(); 
         
         modal.show();
     }
@@ -910,12 +923,9 @@
         document.getElementById('appt-data').value = app.data;
         document.getElementById('appt-note').value = app.note || "";
         
-        const oraSelect = document.getElementById('appt-ora');
-        oraSelect.setAttribute('data-current', app.ora);
-        document.getElementById('appt-data').setAttribute('data-original', app.data);
-        
-        await caricaOrariAdmin();
-        oraSelect.value = app.ora;
+        // Carica suggerimenti ma non forza il valore (lascia quello dell'appuntamento)
+        await caricaSuggerimentiOrari();
+        document.getElementById('appt-ora').value = app.ora;
 
         modal.show();
     }
@@ -930,26 +940,27 @@
             ora: document.getElementById('appt-ora').value,
             note: document.getElementById('appt-note').value
         };
-        // 1. Controllo campi obbligatori (Ora include Telefono)
+        
+        // --- VALIDAZIONE ---
+        // 1. Campi Obbligatori
         if(!payload.cliente || !payload.telefono || !payload.data || !payload.ora) {
             return alert("Compila tutti i campi obbligatori (Cliente, Telefono, Data, Ora)");
         }
 
-        // 2. Controllo Nome e Cognome (deve contenere uno spazio)
+        // 2. Controllo Nome e Cognome
         const nomeTrimmed = payload.cliente.trim();
         if (nomeTrimmed.indexOf(' ') === -1) {
             return alert("Inserisci sia il Nome che il Cognome separati da uno spazio.");
         }
 
         // 3. Validazione Numero Telefono: 9 o 10 cifre
-        // Rimuoviamo spazi, trattini o slash
         const telefonoPulito = payload.telefono.replace(/\s/g, '').replace(/-/g, '').replace(/\//g, '');
-        // Regex: Da 9 a 10 cifre numeriche
         const telefonoRegex = /^\d{9,10}$/;
         
         if (!telefonoRegex.test(telefonoPulito)) {
             return alert("Numero di telefono non valido! Deve contenere tra 9 e 10 cifre.");
         }
+        // --- FINE VALIDAZIONE ---
 
         mostraLoader(true);
         let url = id ? `/modifica/${id}` : `/prenota?${new URLSearchParams({nome: payload.cliente, telefono: payload.telefono, servizio: payload.servizio, data: payload.data, ora: payload.ora, note: payload.note}).toString()}`;

@@ -27,7 +27,6 @@ app.add_middleware(
 )
 
 # --- 1. GESTIONE IMPOSTAZIONI ---
-# Default con gestione PAUSA PRANZO
 DEFAULT_SETTINGS = {
     "weekly": {
         "Monday":    {"open": False, "start": "09:00", "end": "19:00", "continuous": False, "break_start": "13:00", "break_end": "14:00"},
@@ -48,7 +47,6 @@ def load_settings():
         return DEFAULT_SETTINGS
     with open(SETTINGS_FILE, "r") as f:
         data = json.load(f)
-        # Merge per sicurezza (se il file è vecchio aggiunge i campi mancanti)
         for day, params in DEFAULT_SETTINGS["weekly"].items():
             if day in data["weekly"]:
                 for key, val in params.items():
@@ -161,7 +159,9 @@ def get_orari(data: str, db: Session = Depends(get_db)):
             pass 
         else:
             orari_possibili.append(current.strftime("%H:%M"))
-        current += timedelta(minutes=30)
+        
+        # MODIFICA: STEP DI 40 MINUTI
+        current += timedelta(minutes=40)
 
     # Filtro occupati
     prenotazioni = db.query(models.Appointment).filter(models.Appointment.data == data).all()
@@ -180,7 +180,6 @@ def prenota(nome: str, telefono: str, servizio: str, data: str, ora: str, note: 
     
     if not day_config or not day_config["open"]: raise HTTPException(400, "Chiuso!")
 
-    # Check Pausa
     if not day_config.get("continuous", False):
         bs = datetime.strptime(day_config.get("break_start", "13:00"), "%H:%M").time()
         be = datetime.strptime(day_config.get("break_end", "14:00"), "%H:%M").time()

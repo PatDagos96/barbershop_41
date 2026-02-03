@@ -245,17 +245,27 @@
 
             <div class="mb-3">
                 <label>Servizio <span class="obbligatorio">*</span></label>
+                <!-- AGGIORNATI SERVIZI E PREZZI DAL LISTINO -->
+                <!-- Il valore inviato al DB è solo il nome per pulizia -->
+                <!-- Il testo visualizzato include il prezzo per il cliente -->
                 <select id="servizio" class="form-select" onchange="caricaOrari()">
                     <option value="">Seleziona un trattamento...</option>
-                    <option>Taglio donna / uomo</option>
-                    <option>Taglio koreano</option>
-                    <option>Colorazione, ricrescita</option>
-                    <option>Balayage</option>
-                    <option>Flamboyage</option>
-                    <option>Contouring</option>
-                    <option>Keratina lisciante/rimpolpante</option>
-                    <option>Fiale curative e trattamenti</option>
-                    <option>Detox del cuoio capelluto</option>
+                    <option value="Taglio Bambino">Taglio Bambino (10€)</option>
+                    <option value="Taglio Moderno">Taglio Moderno (13€)</option>
+                    <option value="Barba Modellata">Barba Modellata (7€)</option>
+                    <option value="Barba Normale">Barba Normale (5€)</option>
+                    <option value="Taglio + Barba + Shampoo">Taglio + Barba + Shampoo (18€)</option>
+                    <option value="Shampoo">Shampoo (3€)</option>
+                    <option value="Pulizia Viso Vapore">Pulizia viso a vapore (10€)</option>
+                    <option value="Pulizia Viso Filo">Pulizia viso filo arabo (5€)</option>
+                    <option value="Sopracciglia Filo">Sopracciglia con filo (3€)</option>
+                    <option value="Colore">Colore (25€)</option>
+                    <option value="Colore Giallo">Colore Giallo (20€)</option>
+                    <option value="Colore Nero">Colore Nero (15€)</option>
+                    <option value="Colore Grigio">Colore Grigio (40€)</option>
+                    <option value="Trattamento Keratina">Trattamento Keratina (50€)</option>
+                    <option value="Permanente Ricci">Permanente Ricci (20€)</option>
+                    <option value="PACCHETTO COMPLETO">PACCHETTO: Taglio+Barba+Shampoo+Pulizia+Sopracc. (35€)</option>
                 </select>
             </div>
 
